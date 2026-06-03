@@ -64,22 +64,38 @@ function Header() {
     }
   }, [open])
 
+  // Every page opens on a dark hero, so the header is light + legible at the top
+  // (with a subtle scrim over photos) and flips to a solid cream bar once scrolled.
+  const onHero = !scrolled && !open
+
   return (
     <header
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-        scrolled || open ? 'bg-cream/90 backdrop-blur-md border-b border-plum/10 py-3' : 'py-5'
+        onHero ? 'py-5' : 'bg-cream/90 backdrop-blur-md border-b border-plum/10 py-3'
       }`}
     >
+      {onHero && (
+        <div
+          className="absolute inset-0 -z-10 bg-gradient-to-b from-plum-deep/70 via-plum-deep/25 to-transparent pointer-events-none"
+          aria-hidden="true"
+        />
+      )}
       <Container className="flex items-center justify-between">
-        <Logo />
+        <Logo light={onHero} />
         <nav className="hidden md:flex items-center gap-9" aria-label="Primary">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `text-sm tracking-wide link-underline rounded ${
-                  isActive ? 'text-plum font-medium' : 'text-plum/70 hover:text-plum'
+                `text-sm tracking-wide link-underline rounded transition-colors ${
+                  onHero
+                    ? isActive
+                      ? 'text-cream font-medium'
+                      : 'text-cream/75 hover:text-cream'
+                    : isActive
+                      ? 'text-plum font-medium'
+                      : 'text-plum/70 hover:text-plum'
                 }`
               }
             >
@@ -88,20 +104,23 @@ function Header() {
           ))}
           <Link
             to="/book"
-            className="inline-flex items-center gap-2 text-sm tracking-wide px-5 py-2.5 rounded-full bg-plum text-cream hover:bg-plum-soft transition-colors shadow-sm hover:shadow-md"
+            className={`inline-flex items-center gap-2 text-sm tracking-wide px-5 py-2.5 rounded-full transition-all shadow-sm hover:shadow-md ${
+              onHero
+                ? 'bg-champagne text-plum-deep hover:bg-champagne-light'
+                : 'bg-plum text-cream hover:bg-plum-soft'
+            }`}
           >
             Start Planning
           </Link>
         </nav>
 
         <button
-          className="md:hidden text-plum p-2 -mr-2 rounded-full"
+          className={`md:hidden p-2 -mr-2 rounded-full transition-colors ${onHero ? 'text-cream' : 'text-plum'}`}
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
           aria-controls="mobile-menu"
         >
-          {open ? <Menu size={26} className="opacity-0 absolute" /> : null}
           {open ? <Close size={26} /> : <Menu size={26} />}
         </button>
       </Container>

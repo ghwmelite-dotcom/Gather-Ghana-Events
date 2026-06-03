@@ -265,27 +265,53 @@ export default function Book() {
             )}
           </div>
 
-          {/* Estimate sidebar */}
-          <div className="lg:col-span-2">
-            <div className="rounded-3xl bg-champagne-pale p-8 shadow-sm lg:sticky lg:top-28">
-              <span className="font-display italic text-terracotta text-xl">Your estimate</span>
-              <div className="mt-6 space-y-4">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-ink/60 text-sm">Estimated package</span>
-                  <span className="font-display text-plum text-3xl tnum">{fmtGhs(total)}</span>
-                </div>
-                <div className="flex justify-between items-baseline pt-4 border-t border-plum/15">
-                  <span className="text-ink/60 text-sm">Deposit to hold date (30%)</span>
-                  <span className="font-medium text-terracotta tnum">{fmtGhs(deposit)}</span>
-                </div>
+          {/* Estimate + reassurance sidebar */}
+          <div className="lg:col-span-2 lg:sticky lg:top-28 space-y-5">
+            <div className="rounded-3xl bg-champagne-pale p-7 shadow-md">
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-display italic text-terracotta text-xl">Your estimate</span>
+                <span className="text-[11px] uppercase tracking-widest text-ink/45 tnum">
+                  {type} · {guests} {guests === 1 ? 'guest' : 'guests'}
+                </span>
               </div>
-              <div className="mt-6 flex items-center gap-2 text-xs text-ink/55">
-                <CreditCard size={15} /> Paystack · Mobile Money &amp; card
+              <div className="mt-6 flex items-baseline justify-between">
+                <span className="text-ink/60 text-sm">Estimated package</span>
+                <span className="font-display text-plum text-3xl tnum">{fmtGhs(total)}</span>
               </div>
-              <p className="mt-4 text-xs text-ink/50 leading-relaxed">
-                Indicative only. Your final quote is tailored to your specific vision, guest
-                count, and requirements.
+              <div className="mt-4 pt-4 border-t border-plum/15 flex items-baseline justify-between">
+                <span className="text-ink/60 text-sm">
+                  Deposit to hold date <span className="text-ink/40">(30%)</span>
+                </span>
+                <span className="font-display text-terracotta text-xl tnum">{fmtGhs(deposit)}</span>
+              </div>
+              <div className="mt-5 flex items-center gap-2 text-xs text-ink/55">
+                <CreditCard size={15} /> Secured by Paystack · Mobile Money &amp; card
+              </div>
+              <p className="mt-3 text-xs text-ink/45 leading-relaxed">
+                Indicative only — your final quote is tailored to your vision, guest count, and
+                requirements.
               </p>
+            </div>
+
+            <div className="rounded-3xl bg-plum text-cream p-7">
+              <h2 className="font-display text-xl mb-5">What happens next</h2>
+              <ol className="space-y-4">
+                {[
+                  { t: 'Share your details', d: 'We review your date and vision — no commitment yet.' },
+                  { t: 'We reply within 24 hours', d: 'A warm hello and a tailored quote for your event.' },
+                  { t: 'Secure your date', d: 'Pay your deposit by Mobile Money or card when ready.' },
+                ].map((s, i) => (
+                  <li key={s.t} className="flex gap-3">
+                    <span className="shrink-0 grid place-items-center w-7 h-7 rounded-full bg-cream/10 text-champagne-light font-display text-sm">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <p className="text-cream text-sm font-medium">{s.t}</p>
+                      <p className="text-cream/60 text-xs mt-0.5 leading-relaxed">{s.d}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
           </div>
         </Container>
