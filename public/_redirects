@@ -1,0 +1,3 @@
+# SPA fallback: serve index.html for client-side routes (200 = rewrite, not redirect).
+# /api/* is handled by Pages Functions and takes precedence over this rule.
+/*    /index.html   200

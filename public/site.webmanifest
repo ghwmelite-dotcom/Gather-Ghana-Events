@@ -1,0 +1,12 @@
+{
+  "name": "Gather Ghana Events",
+  "short_name": "Gather Ghana",
+  "description": "Bespoke event planning and styling in Accra.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF6EF",
+  "theme_color": "#2B1B2E",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

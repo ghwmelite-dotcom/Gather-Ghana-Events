@@ -1,0 +1,28 @@
+# Cloudflare Pages + Functions configuration.
+# The site (dist/) and the API (functions/) deploy together to one Pages project.
+
+name = "gather-ghana-events"
+compatibility_date = "2024-09-25"
+pages_build_output_dir = "dist"
+
+# Non-secret vars. Override per-environment in the Cloudflare dashboard.
+# SITE_URL must match the deployed origin in production (used for Paystack
+# callbacks and magic-link URLs).
+[vars]
+ENVIRONMENT = "development"
+SITE_URL = "http://localhost:8788"
+PAYSTACK_CURRENCY = "GHS"
+PAYSTACK_CHANNELS = "mobile_money,card"
+
+# D1 binding. Create the DB then paste its id here:
+#   wrangler d1 create gather-ghana
+[[d1_databases]]
+binding = "DB"
+database_name = "gather-ghana"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Secrets (do NOT put here — set with `wrangler pages secret put <NAME>`):
+#   PAYSTACK_SECRET_KEY   sk_test_... or sk_live_...
+#   SESSION_SECRET        long random string (openssl rand -hex 32)
+#   RESEND_API_KEY        optional — enables magic-link emails
+#   EMAIL_FROM            optional — e.g. "Gather Ghana <hello@yourdomain>"

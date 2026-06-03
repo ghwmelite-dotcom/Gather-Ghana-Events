@@ -1,0 +1,8 @@
+# Local secrets for `wrangler pages dev`. Copy to `.dev.vars` (gitignored) and fill in.
+# Get test keys from https://dashboard.paystack.com/#/settings/developer
+
+PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+SESSION_SECRET=change-me-to-a-long-random-string
+# Optional — enables real magic-link emails (otherwise a devLink is returned locally):
+# RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxx
+# EMAIL_FROM=Gather Ghana Events <hello@gatherghana.events>
