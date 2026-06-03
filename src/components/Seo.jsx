@@ -6,7 +6,7 @@ const ORIGIN = 'https://gatherghana.events'
 const DEFAULT_DESC =
   'Bespoke event planning and styling in Accra. Weddings, celebrations, and corporate events, designed with intention.'
 const DEFAULT_OG =
-  'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80'
+  'https://images.unsplash.com/photo-1695281536457-01f9a07c575b?auto=format&fit=crop&w=1200&q=80'
 
 function setMeta(selector, attr, value) {
   let el = document.head.querySelector(selector)
