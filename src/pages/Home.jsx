@@ -4,6 +4,7 @@ import Img from '../components/ui/Img.jsx'
 import Reveal from '../components/ui/Reveal.jsx'
 import { Section, Container, Eyebrow } from '../components/ui/Section.jsx'
 import Testimonials from '../components/sections/Testimonials.jsx'
+import RootedInGhana from '../components/sections/RootedInGhana.jsx'
 import { ArrowRight, Heart, Sparkles, Building } from '../lib/icons.jsx'
 import { img } from '../lib/images.js'
 
@@ -26,7 +27,7 @@ function Hero() {
 
       <Container className="relative z-10 pb-24 pt-40">
         <p className="rise rise-1 text-champagne-light text-sm tracking-[0.3em] uppercase mb-8">
-          Bespoke Event Planning · Accra
+          Akwaaba · Bespoke Event Planning · Accra
         </p>
         <h1 className="rise rise-2 font-display text-cream text-5xl sm:text-7xl lg:text-8xl leading-[0.95] max-w-4xl text-balance">
           Every gathering,
@@ -180,6 +181,7 @@ export default function Home() {
       <Intro />
       <ServicesPreview />
       <Stats />
+      <RootedInGhana />
       <Testimonials />
       <CTA />
     </>

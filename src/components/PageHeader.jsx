@@ -1,4 +1,5 @@
 import { Container, Eyebrow } from './ui/Section.jsx'
+import KenteBand from './ui/KenteBand.jsx'
 
 /**
  * Reusable hero header for inner pages.
@@ -34,6 +35,7 @@ export default function PageHeader({ eyebrow, title, subtitle, image }) {
           </p>
         )}
       </Container>
+      <KenteBand className="h-1 absolute bottom-0 inset-x-0" />
     </section>
   )
 }

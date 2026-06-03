@@ -9,6 +9,8 @@ export default {
         terracotta: { DEFAULT: '#B5654A', soft: '#C97D63' },
         cream: { DEFAULT: '#FAF6EF', deep: '#F2EADD' },
         ink: '#1A1216',
+        // Kente-inspired accent — deep weaving green, used sparingly with plum + gold.
+        kente: { DEFAULT: '#1F6B52', deep: '#134032' },
       },
       fontFamily: {
         display: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],

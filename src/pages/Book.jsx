@@ -110,7 +110,8 @@ export default function Book() {
             {status === 'paid' ? (
               <div className="rounded-3xl bg-plum text-cream p-10 animate-scale-in">
                 <CheckCircle size={40} className="text-champagne-light" />
-                <h2 className="font-display text-3xl mt-4 mb-3">Your date is secured.</h2>
+                <span className="font-display italic text-champagne-light text-xl block mt-4">Medaase!</span>
+                <h2 className="font-display text-3xl mt-1 mb-3">Your date is secured.</h2>
                 <p className="text-cream/70 leading-relaxed">
                   Thank you — your deposit was received and your booking is confirmed. A receipt
                   is on its way to your email. You can track every detail, payment, and milestone
@@ -123,7 +124,8 @@ export default function Book() {
             ) : status === 'done' ? (
               <div className="rounded-3xl bg-plum text-cream p-10 animate-scale-in">
                 <CheckCircle size={40} className="text-champagne-light" />
-                <h2 className="font-display text-3xl mt-4 mb-3">
+                <span className="font-display italic text-champagne-light text-xl block mt-4">Medaase!</span>
+                <h2 className="font-display text-3xl mt-1 mb-3">
                   Your inquiry is in, {form.name || 'friend'}.
                 </h2>
                 <p className="text-cream/70 leading-relaxed">

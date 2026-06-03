@@ -115,7 +115,8 @@ export default function Contact() {
             {status === 'sent' ? (
               <Reveal className="rounded-3xl bg-plum text-cream p-10">
                 <CheckCircle size={40} className="text-champagne-light" />
-                <h2 className="font-display text-3xl mt-4 mb-3">Message received</h2>
+                <span className="font-display italic text-champagne-light text-xl block mt-4">Medaase!</span>
+                <h2 className="font-display text-3xl mt-1 mb-3">Message received</h2>
                 <p className="text-cream/70 leading-relaxed">
                   Thank you, {form.name || 'friend'}. We&apos;ve got your note and will be in
                   touch within a day. For anything urgent, message us on WhatsApp.

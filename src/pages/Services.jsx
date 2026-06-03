@@ -13,13 +13,13 @@ const detailed = [
   {
     title: 'Weddings',
     image: img.weddings,
-    desc: 'Full-service planning and styling for ceremonies that honour tradition and personality alike. We coordinate vendors, design the aesthetic, and run the day so you and your family can be fully present.',
+    desc: 'Full-service planning and styling for traditional rites, engagements, and white weddings alike — honouring custom and personality in equal measure. We coordinate vendors, design the aesthetic, and run the day so you and your family can be fully present.',
     includes: ['Concept & design direction', 'Vendor sourcing & management', 'Day-of coordination', 'Budget stewardship'],
   },
   {
     title: 'Celebrations',
     image: img.celebrations,
-    desc: 'Birthdays, anniversaries, naming ceremonies, and milestones. Intimate or grand, every celebration is styled to feel personal, warm, and unmistakably yours.',
+    desc: 'Birthdays, anniversaries, outdoorings (naming ceremonies), engagements, and milestones. Intimate or grand, every celebration is styled to feel personal, warm, and unmistakably yours.',
     includes: ['Theme & styling', 'Venue & décor', 'Entertainment booking', 'Guest experience design'],
   },
   {

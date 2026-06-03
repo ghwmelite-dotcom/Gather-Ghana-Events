@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { Container } from './ui/Section.jsx'
+import KenteBand from './ui/KenteBand.jsx'
 import { Menu, Close, TikTok, WhatsApp, Mail, MapPin, ArrowRight } from '../lib/icons.jsx'
 
 const navItems = [
@@ -158,6 +159,7 @@ function Header() {
 function Footer() {
   return (
     <footer className="bg-plum-deep text-cream relative z-10">
+      <KenteBand className="h-1.5" />
       <Container className="py-20">
         <div className="grid md:grid-cols-3 gap-12">
           <div>
