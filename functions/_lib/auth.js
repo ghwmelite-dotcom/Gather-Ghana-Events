@@ -10,7 +10,7 @@ const COOKIE = 'gge_session'
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30 // 30 days
 const MAGIC_TTL_MS = 1000 * 60 * 30 // 30 minutes
 
-export const magicTokenTtl = () => now() + MAGIC_TTL_MS
+const magicTokenTtl = () => now() + MAGIC_TTL_MS
 
 /** Create a signed session token for a client id. */
 export async function createSession(clientId, secret) {
@@ -85,7 +85,7 @@ export function isOrganizer(env, client) {
   return isOrganizerEmail(env, client.email) || client.is_organizer === 1
 }
 
-/** Mint a single-use magic link for a client; stores only the token hash. */
+/** Mint a single-use magic link for a client (only client.id is required); stores only the token hash. */
 export async function issueMagicLink(env, client, site) {
   const token = uid('') + uid('')
   const tokenHash = await sha256Hex(token)
