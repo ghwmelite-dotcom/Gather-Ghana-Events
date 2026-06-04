@@ -84,6 +84,8 @@ export const api = {
   orgInquiryStatus: (inquiryId, status) => request('/org/inquiry', { method: 'POST', body: { inquiryId, status } }),
   orgVendors: () => request('/org/vendors'),
   orgVendorAction: (payload) => request('/org/vendors', { method: 'POST', body: payload }),
+  orgMessages: () => request('/org/messages'),
+  orgMessageAction: (payload) => request('/org/messages', { method: 'POST', body: payload }),
 
   // ---- Proposals (client accepts/declines) ----
   proposalAction: (proposalId, action) => request('/portal/proposals', { method: 'POST', body: { proposalId, action } }),
