@@ -3,4 +3,4 @@ Allow: /
 Disallow: /portal
 Disallow: /login
 
-Sitemap: https://gatherghana.events/sitemap.xml
+Sitemap: https://gge.ohwpstudios.org/sitemap.xml

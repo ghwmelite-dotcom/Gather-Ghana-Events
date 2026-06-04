@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
 const SITE = 'Gather Ghana Events'
-const ORIGIN = 'https://gatherghana.events'
+const ORIGIN = 'https://gge.ohwpstudios.org'
 const DEFAULT_DESC =
   'Bespoke event planning and styling in Accra. Weddings, celebrations, and corporate events, designed with intention.'
 const DEFAULT_OG =

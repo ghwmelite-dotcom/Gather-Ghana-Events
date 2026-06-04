@@ -8,11 +8,13 @@ pages_build_output_dir = "dist"
 # ea2eb3a9813660dfca2a60e594858538) — Pages config does not allow account_id here.
 
 # Production vars. For LOCAL dev, override these in .dev.vars (gitignored) —
-# e.g. set ENVIRONMENT=development to expose magic-link dev links.
-# SITE_URL is intentionally unset: callback + magic-link URLs use the request
-# origin, which is correct on *.pages.dev and on any custom domain.
+# e.g. set ENVIRONMENT=development to expose magic-link dev links, and
+# SITE_URL=http://localhost:8788 so generated links point at the local server.
+# SITE_URL pins the canonical public origin so magic-link + Paystack callback
+# URLs (and the CORS allowlist) always use the apex domain — not www or *.pages.dev.
 [vars]
 ENVIRONMENT = "production"
+SITE_URL = "https://gge.ohwpstudios.org"
 PAYSTACK_CURRENCY = "GHS"
 PAYSTACK_CHANNELS = "mobile_money,card"
 WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
