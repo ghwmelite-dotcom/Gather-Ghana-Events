@@ -141,6 +141,7 @@ export default function OrgDashboard() {
           <h1 className="font-display text-4xl sm:text-5xl">Welcome, {data.organizer.name?.split(' ')[0] || 'planner'}.</h1>
           <nav aria-label="Organizer tools" className="mt-5 flex flex-wrap gap-2">
             <Link to="/org/vendors" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Vendors</Link>
+            <Link to="/org/messages" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Inbox</Link>
           </nav>
         </Container>
       </section>

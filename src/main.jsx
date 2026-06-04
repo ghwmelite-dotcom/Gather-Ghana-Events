@@ -23,6 +23,7 @@ import Concierge from './pages/Concierge.jsx'
 import OrgDashboard from './pages/OrgDashboard.jsx'
 import OrgClient from './pages/OrgClient.jsx'
 import OrgVendors from './pages/OrgVendors.jsx'
+import OrgMessages from './pages/OrgMessages.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -75,6 +76,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               element={
                 <ProtectedRoute>
                   <OrgVendors />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/org/messages"
+              element={
+                <ProtectedRoute>
+                  <OrgMessages />
                 </ProtectedRoute>
               }
             />
