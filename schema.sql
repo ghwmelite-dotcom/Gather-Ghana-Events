@@ -159,3 +159,52 @@ CREATE TABLE IF NOT EXISTS contributions (
 );
 CREATE INDEX IF NOT EXISTS idx_contributions_event ON contributions(event_id);
 CREATE INDEX IF NOT EXISTS idx_contributions_reference ON contributions(reference);
+
+-- =====================================================================
+-- Platform Tier 2 — Vendor Marketplace
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS vendors (
+  id          TEXT PRIMARY KEY,
+  slug        TEXT NOT NULL UNIQUE,
+  name        TEXT NOT NULL,
+  category    TEXT NOT NULL,                 -- catering | decor | venue | photography | music | cake | makeup
+  location    TEXT,
+  tagline     TEXT,
+  about       TEXT,
+  image       TEXT,
+  price_from  INTEGER NOT NULL DEFAULT 0,    -- minor units, GHS
+  currency    TEXT NOT NULL DEFAULT 'GHS',
+  verified    INTEGER NOT NULL DEFAULT 0,
+  rating      REAL NOT NULL DEFAULT 0,
+  reviews_count INTEGER NOT NULL DEFAULT 0,
+  whatsapp    TEXT,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_vendors_category ON vendors(category);
+CREATE INDEX IF NOT EXISTS idx_vendors_slug ON vendors(slug);
+
+CREATE TABLE IF NOT EXISTS vendor_reviews (
+  id          TEXT PRIMARY KEY,
+  vendor_id   TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  author      TEXT NOT NULL,
+  rating      INTEGER NOT NULL,             -- 1..5
+  body        TEXT,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_reviews_vendor ON vendor_reviews(vendor_id);
+
+-- =====================================================================
+-- Platform Tier 3 — Organizer OS (proposals)
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS proposals (
+  id            TEXT PRIMARY KEY,
+  inquiry_id    TEXT REFERENCES inquiries(id) ON DELETE CASCADE,
+  organizer_email TEXT,
+  title         TEXT NOT NULL,
+  amount        INTEGER NOT NULL DEFAULT 0,  -- minor units
+  currency      TEXT NOT NULL DEFAULT 'GHS',
+  body          TEXT,
+  status        TEXT NOT NULL DEFAULT 'draft', -- draft | sent | accepted | declined
+  created_at    INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_proposals_inquiry ON proposals(inquiry_id);

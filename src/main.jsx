@@ -15,6 +15,11 @@ import Book from './pages/Book.jsx'
 import Login from './pages/Login.jsx'
 import Portal from './pages/Portal.jsx'
 import EventPage from './pages/EventPage.jsx'
+import Vendors from './pages/Vendors.jsx'
+import VendorProfile from './pages/VendorProfile.jsx'
+import Playbooks from './pages/Playbooks.jsx'
+import PlaybookDetail from './pages/PlaybookDetail.jsx'
+import Concierge from './pages/Concierge.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -31,6 +36,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/vendors" element={<Vendors />} />
+            <Route path="/vendors/:slug" element={<VendorProfile />} />
+            <Route path="/playbooks" element={<Playbooks />} />
+            <Route path="/playbooks/:slug" element={<PlaybookDetail />} />
+            <Route path="/concierge" element={<Concierge />} />
             <Route path="/book" element={<Book />} />
             <Route path="/login" element={<Login />} />
             <Route

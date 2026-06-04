@@ -8,6 +8,7 @@ import { Menu, Close, TikTok, WhatsApp, Mail, MapPin, ArrowRight } from '../lib/
 const navItems = [
   { to: '/', label: 'Home' },
   { to: '/services', label: 'Services' },
+  { to: '/vendors', label: 'Vendors' },
   { to: '/portfolio', label: 'Portfolio' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
@@ -84,7 +85,7 @@ function Header() {
       )}
       <Container className="flex items-center justify-between">
         <Logo light={onHero} />
-        <nav className="hidden md:flex items-center gap-9" aria-label="Primary">
+        <nav className="hidden md:flex items-center gap-5 lg:gap-7" aria-label="Primary">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -205,6 +206,8 @@ function Footer() {
                   <Link to={i.to} className="link-underline">{i.label}</Link>
                 </li>
               ))}
+              <li><Link to="/playbooks" className="link-underline">Playbooks</Link></li>
+              <li><Link to="/concierge" className="link-underline">AI Concierge</Link></li>
               <li><Link to="/book" className="link-underline">Start Planning</Link></li>
               <li><Link to="/portal" className="link-underline">Client Portal</Link></li>
             </ul>

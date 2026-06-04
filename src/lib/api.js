@@ -63,6 +63,18 @@ export const api = {
 
   // ---- FX (public) ----
   fx: () => request('/fx'),
+
+  // ---- Vendor marketplace ----
+  vendors: (query = {}) => {
+    const qs = new URLSearchParams(Object.entries(query).filter(([, v]) => v)).toString()
+    return request(`/vendors${qs ? `?${qs}` : ''}`)
+  },
+  vendor: (slug) => request(`/vendors/${encodeURIComponent(slug)}`),
+  reviewVendor: (slug, payload) =>
+    request(`/vendors/${encodeURIComponent(slug)}/reviews`, { method: 'POST', body: payload }),
+
+  // ---- AI concierge (public) ----
+  concept: (payload) => request('/ai/concept', { method: 'POST', body: payload }),
 }
 
 export { ApiError }
