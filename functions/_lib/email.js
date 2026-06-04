@@ -46,6 +46,25 @@ export function sendMagicLink(env, { to, link, name }) {
   })
 }
 
+const escHtml = (s) => String(s).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))
+
+/** Organizer's reply to a contact-form message. */
+export function sendMessageReply(env, { to, name, body, replyTo }) {
+  const paragraphs = String(body)
+    .split('\n')
+    .map((line) => `<p>${escHtml(line) || '&nbsp;'}</p>`)
+    .join('')
+  return sendEmail(env, {
+    to,
+    replyTo,
+    subject: 'Re: your message to Gather Ghana Events',
+    html: shell(
+      `Hello ${escHtml(name || 'there')},`,
+      `${paragraphs}<p style="color:#6b6168;font-size:13px;margin-top:20px">— The Gather Ghana Events team</p>`
+    ),
+  })
+}
+
 /** Confirm a new inquiry to the client and notify the organizer. */
 export async function sendInquiryEmails(env, { clientEmail, clientName, type, date, site }) {
   const tasks = []
