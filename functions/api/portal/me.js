@@ -2,6 +2,7 @@
 
 import { json, unauthorized } from '../../_lib/respond.js'
 import { currentClientId } from '../../_lib/auth.js'
+import { escrowTotals } from '../../_lib/escrow.js'
 
 export async function onRequestGet({ request, env }) {
   const clientId = await currentClientId(request, env)
@@ -32,7 +33,7 @@ export async function onRequestGet({ request, env }) {
   if (primary) {
     const tl = await db
       .prepare(
-        `SELECT id, title, description, due_date, status, sort
+        `SELECT id, title, description, due_date, status, sort, amount, currency, escrow_status
          FROM timeline_events WHERE inquiry_id = ? ORDER BY sort ASC, created_at ASC`
       )
       .bind(primary.id)
@@ -64,6 +65,12 @@ export async function onRequestGet({ request, env }) {
     inquiries,
     timeline,
     payments,
-    summary: { estimate, paid, balance, deposit: primary?.deposit || 0 },
+    summary: {
+      estimate,
+      paid,
+      balance,
+      deposit: primary?.deposit || 0,
+      escrow: escrowTotals(timeline),
+    },
   })
 }

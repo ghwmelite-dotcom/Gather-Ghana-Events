@@ -1,13 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Seo from '../components/Seo.jsx'
 import Button from '../components/ui/Button.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
 import {
-  Calendar, Users, CreditCard, CheckCircle, Clock, LogOut, WhatsApp, ArrowRight, Spinner,
+  Calendar, Users, CreditCard, CheckCircle, Clock, LogOut, WhatsApp, ArrowRight, Spinner, Lock,
 } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { fmtGhs } from '../lib/content.js'
+import { formatMoney } from '../lib/money.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+
+const escrowChip = {
+  funded: { label: 'Held in escrow', cls: 'bg-champagne/20 text-terracotta' },
+  release_requested: { label: 'Release requested', cls: 'bg-champagne/20 text-terracotta' },
+  released: { label: 'Released', cls: 'bg-kente/15 text-kente' },
+  disputed: { label: 'Under review', cls: 'bg-plum/10 text-ink/50' },
+}
 
 const WHATSAPP_URL = 'https://wa.me/233000000000'
 
@@ -24,7 +32,7 @@ function fmtDate(d) {
   return parsed.toLocaleDateString('en-GH', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-function Timeline({ items }) {
+function Timeline({ items, onAction, acting }) {
   if (!items.length) {
     return (
       <p className="text-ink/55 text-sm">
@@ -37,18 +45,38 @@ function Timeline({ items }) {
       {items.map((t, i) => {
         const s = statusStyles[t.status] || statusStyles.upcoming
         const last = i === items.length - 1
+        const hasEscrow = t.amount > 0 && t.escrow_status && t.escrow_status !== 'none'
+        const chip = escrowChip[t.escrow_status]
+        const releasable = t.escrow_status === 'funded' || t.escrow_status === 'release_requested'
         return (
           <li key={t.id} className="relative flex gap-5 pb-8">
             {!last && <span className="absolute left-[15px] top-8 bottom-0 w-px bg-plum/15" aria-hidden="true" />}
             <span className={`relative z-10 grid place-items-center w-8 h-8 rounded-full border-2 shrink-0 ${s.ring}`}>
               {t.status === 'done' ? <CheckCircle size={16} /> : t.status === 'in_progress' ? <Clock size={16} /> : <span className="w-2 h-2 rounded-full bg-current" />}
             </span>
-            <div className="pt-0.5">
+            <div className="pt-0.5 flex-1">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <h3 className="font-display text-plum text-lg">{t.title}</h3>
                 <span className="text-[11px] uppercase tracking-wider text-ink/45">{fmtDate(t.due_date)}</span>
               </div>
               {t.description && <p className="text-ink/65 text-sm mt-1 leading-relaxed">{t.description}</p>}
+
+              {hasEscrow && (
+                <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-cream border border-plum/8 p-3">
+                  <Lock size={16} className="text-terracotta shrink-0" />
+                  <span className="font-display text-plum tnum">{formatMoney(t.amount, t.currency)}</span>
+                  {chip && <span className={`text-[11px] px-2 py-0.5 rounded-full ${chip.cls}`}>{chip.label}</span>}
+                  {releasable && (
+                    <button
+                      onClick={() => onAction(t.id, 'approve')}
+                      disabled={acting === t.id}
+                      className="ml-auto inline-flex items-center gap-1.5 text-sm rounded-full bg-plum text-cream px-4 py-1.5 hover:bg-plum-soft transition-colors disabled:opacity-50"
+                    >
+                      {acting === t.id ? <Spinner size={14} /> : <CheckCircle size={14} />} Approve &amp; release
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </li>
         )
@@ -63,21 +91,33 @@ export default function Portal() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [paying, setPaying] = useState(false)
+  const [acting, setActing] = useState(null)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const res = await api.portal()
-        if (!cancelled) setData(res)
-      } catch (err) {
-        if (!cancelled) setError(err instanceof ApiError ? err.message : 'Could not load your portal.')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
+  const load = useCallback(async () => {
+    try {
+      const res = await api.portal()
+      setData(res)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not load your portal.')
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const actOnMilestone = async (milestoneId, action) => {
+    setActing(milestoneId)
+    setError('')
+    try {
+      await api.milestoneAction(milestoneId, action)
+      await load()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not update the milestone.')
+    } finally {
+      setActing(null)
+    }
+  }
 
   const payBalance = async () => {
     setPaying(true)
@@ -177,7 +217,7 @@ export default function Portal() {
 
                 <div className="rounded-3xl bg-cream-deep border border-plum/8 p-8">
                   <h2 className="font-display text-plum text-2xl mb-6">Planning timeline</h2>
-                  <Timeline items={data.timeline} />
+                  <Timeline items={data.timeline} onAction={actOnMilestone} acting={acting} />
                 </div>
               </div>
 
@@ -199,6 +239,25 @@ export default function Portal() {
                       <dd className="font-display text-2xl text-champagne-light tnum">{fmtGhs(summary.balance)}</dd>
                     </div>
                   </dl>
+
+                  {summary.escrow && (summary.escrow.held > 0 || summary.escrow.released > 0) && (
+                    <div className="mt-5 rounded-xl bg-cream/10 p-4">
+                      <p className="flex items-center gap-2 text-champagne-light text-sm font-medium">
+                        <Lock size={15} /> Gather Guarantee
+                      </p>
+                      <div className="mt-2 flex justify-between text-sm">
+                        <span className="text-cream/65">Held in escrow</span>
+                        <span className="tnum">{formatMoney(summary.escrow.held, 'GHS')}</span>
+                      </div>
+                      <div className="mt-1 flex justify-between text-sm">
+                        <span className="text-cream/65">Released</span>
+                        <span className="tnum text-champagne-light">{formatMoney(summary.escrow.released, 'GHS')}</span>
+                      </div>
+                      <p className="mt-2 text-xs text-cream/45">
+                        Funds are protected and released only when you approve each milestone.
+                      </p>
+                    </div>
+                  )}
 
                   {summary.balance > 0 ? (
                     <Button onClick={payBalance} variant="gold" size="md" loading={paying} className="w-full mt-7">

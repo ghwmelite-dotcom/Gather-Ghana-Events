@@ -47,14 +47,17 @@ CREATE INDEX IF NOT EXISTS idx_payments_inquiry ON payments(inquiry_id);
 
 -- Portal timeline milestones for a booked event.
 CREATE TABLE IF NOT EXISTS timeline_events (
-  id          TEXT PRIMARY KEY,
-  inquiry_id  TEXT NOT NULL REFERENCES inquiries(id) ON DELETE CASCADE,
-  title       TEXT NOT NULL,
-  description TEXT,
-  due_date    TEXT,
-  status      TEXT NOT NULL DEFAULT 'upcoming', -- upcoming | in_progress | done
-  sort        INTEGER NOT NULL DEFAULT 0,
-  created_at  INTEGER NOT NULL
+  id            TEXT PRIMARY KEY,
+  inquiry_id    TEXT NOT NULL REFERENCES inquiries(id) ON DELETE CASCADE,
+  title         TEXT NOT NULL,
+  description   TEXT,
+  due_date      TEXT,
+  status        TEXT NOT NULL DEFAULT 'upcoming', -- upcoming | in_progress | done
+  sort          INTEGER NOT NULL DEFAULT 0,
+  amount        INTEGER NOT NULL DEFAULT 0,        -- minor units held in escrow for this milestone
+  currency      TEXT NOT NULL DEFAULT 'GHS',
+  escrow_status TEXT NOT NULL DEFAULT 'none',      -- none|funded|release_requested|released|disputed
+  created_at    INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_timeline_inquiry ON timeline_events(inquiry_id);
 

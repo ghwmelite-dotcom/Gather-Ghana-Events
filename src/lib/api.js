@@ -51,6 +51,8 @@ export const api = {
 
   // ---- Portal (auth required) ----
   portal: () => request('/portal/me'),
+  milestoneAction: (milestoneId, action) =>
+    request('/portal/milestones', { method: 'POST', body: { milestoneId, action } }),
 
   // ---- Events (public + create) ----
   event: (slug) => request(`/events/${encodeURIComponent(slug)}`),
