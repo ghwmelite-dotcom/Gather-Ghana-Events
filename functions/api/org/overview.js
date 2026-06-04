@@ -18,7 +18,7 @@ export async function onRequestGet({ request, env }) {
                 FROM inquiries i JOIN clients c ON c.id = i.client_id
                 ORDER BY i.created_at DESC LIMIT 25`).all(),
     db.prepare('SELECT slug, title, host_names, event_date, visibility FROM events ORDER BY created_at DESC LIMIT 25').all(),
-    db.prepare('SELECT name, email, body, created_at FROM messages ORDER BY created_at DESC LIMIT 10').all(),
+    db.prepare('SELECT id, name, email, body, status, created_at FROM messages ORDER BY created_at DESC LIMIT 10').all(),
   ])
 
   return json({
