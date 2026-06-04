@@ -21,12 +21,15 @@ export default function OrgTeam() {
   }, [])
   useEffect(() => { load() }, [load])
 
-  const run = async (fn) => { setBusy(true); setErr(''); setMsg('') ; try { await fn() } catch (e) { setErr(e instanceof ApiError ? e.message : 'Action failed.') } finally { setBusy(false); await load() } }
-  const sendInvite = () => run(async () => {
-    const res = await api.orgOrganizerAction({ action: 'invite', email: invite.email, name: invite.name })
-    setMsg(res.emailed ? "Invite sent — they'll get a sign-in link." : 'Added, but the invite email could not be sent.')
-    setInvite({ email: '', name: '' })
-  })
+  const run = async (fn) => { setBusy(true); setErr(''); setMsg(''); try { await fn() } catch (e) { setErr(e instanceof ApiError ? e.message : 'Action failed.') } finally { setBusy(false); await load() } }
+  const sendInvite = () => {
+    const { email, name } = invite
+    run(async () => {
+      const res = await api.orgOrganizerAction({ action: 'invite', email, name })
+      setMsg(res.emailed ? "Invite sent — they'll get a sign-in link." : 'Added, but the invite email could not be sent.')
+      setInvite({ email: '', name: '' })
+    })
+  }
   const revoke = (m) => { if (confirm(`Revoke organizer access for ${m.email}?`)) run(() => api.orgOrganizerAction({ action: 'revoke', clientId: m.clientId })) }
 
   if (state === 'loading') return <div className="min-h-dvh grid place-items-center text-plum"><Spinner size={32} /></div>
@@ -38,6 +41,8 @@ export default function OrgTeam() {
     </Container></Section>
   )
   if (state === 'error' || !data) return <div className="min-h-dvh grid place-items-center text-terracotta">Couldn't load the team.</div>
+  const members = data.members || []
+  const configEmails = data.configEmails || []
 
   return (
     <>
@@ -53,7 +58,7 @@ export default function OrgTeam() {
       <Section tone="cream" pad="md">
         <Container className="grid lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-3">
-            {data.members.map((m) => (
+            {members.map((m) => (
               <div key={m.clientId} className="rounded-2xl bg-cream-deep border border-plum/8 p-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-display text-plum">{m.name} {m.isSelf && <span className="text-ink/45 text-xs">(you)</span>}</p>
@@ -62,11 +67,11 @@ export default function OrgTeam() {
                 {m.source === 'config' ? (
                   <span className="text-[11px] px-2 py-0.5 rounded-full bg-plum/10 text-ink/55">Permanent (config)</span>
                 ) : m.isSelf ? null : (
-                  <button disabled={busy} onClick={() => revoke(m)} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Revoke</button>
+                  <button aria-label={`Revoke organizer access for ${m.name}`} disabled={busy} onClick={() => revoke(m)} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Revoke</button>
                 )}
               </div>
             ))}
-            {data.configEmails.filter((e) => !data.members.some((m) => m.email === e)).map((e) => (
+            {configEmails.filter((e) => !members.some((m) => m.email === e)).map((e) => (
               <div key={e} className="rounded-2xl bg-cream-deep border border-plum/8 p-5 flex items-center justify-between gap-3">
                 <p className="text-ink/70 text-sm">{e} <span className="text-ink/40 text-xs">(not yet signed in)</span></p>
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-plum/10 text-ink/55">Permanent (config)</span>
