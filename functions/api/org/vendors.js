@@ -2,7 +2,7 @@
 //   GET                    -> list ALL vendors (incl. unverified)
 //   POST { action, ... }   -> create | update | delete | verify
 
-import { ok, json, fail, readJson } from '../../_lib/respond.js'
+import { ok, fail, readJson } from '../../_lib/respond.js'
 import { uid, now, clampStr, slugify } from '../../_lib/util.js'
 import { currentOrganizer } from '../../_lib/auth.js'
 import { toMinor } from '../../_lib/money.js'
@@ -31,7 +31,7 @@ export async function onRequestGet({ request, env }) {
        FROM vendors ORDER BY created_at DESC`
     )
     .all()
-  return json({ ok: true, vendors: results, categories: CATEGORIES })
+  return ok({ vendors: results, categories: CATEGORIES })
 }
 
 export async function onRequestPost({ request, env }) {
@@ -56,7 +56,7 @@ export async function onRequestPost({ request, env }) {
       .bind(
         id, slug, name, category,
         clampStr(body.location, 120), clampStr(body.tagline, 200), clampStr(body.about, 2000),
-        clampStr(body.image, 500), toMinor(parseFloat(body.price_from) || 0, 'GHS'), 'GHS',
+        clampStr(body.image, 500), Math.max(0, toMinor(parseFloat(body.price_from) || 0, 'GHS')), 'GHS',
         body.verified ? 1 : 0, clampStr(body.whatsapp, 30), now()
       )
       .run()
@@ -70,6 +70,8 @@ export async function onRequestPost({ request, env }) {
     const name = clampStr(body.name, 120) || existing.name
     const category = CATEGORIES.includes(body.category) ? body.category : null
     const slug = name !== existing.name ? await uniqueSlug(db, name, id) : existing.slug
+    // Callers (the org vendor form) send the FULL record, so empty strings intentionally
+    // clear optional fields. category is the one exception, preserved when invalid/omitted.
     await db
       .prepare(
         `UPDATE vendors SET name=?, slug=?, category=COALESCE(?,category), location=?, tagline=?,
@@ -78,7 +80,7 @@ export async function onRequestPost({ request, env }) {
       .bind(
         name, slug, category,
         clampStr(body.location, 120), clampStr(body.tagline, 200), clampStr(body.about, 2000),
-        clampStr(body.image, 500), toMinor(parseFloat(body.price_from) || 0, 'GHS'),
+        clampStr(body.image, 500), Math.max(0, toMinor(parseFloat(body.price_from) || 0, 'GHS')),
         clampStr(body.whatsapp, 30), id
       )
       .run()
@@ -91,12 +93,13 @@ export async function onRequestPost({ request, env }) {
   }
 
   if (action === 'verify') {
+    const id = clampStr(body.id, 60)
     const r = await db
       .prepare('UPDATE vendors SET verified = ? WHERE id = ?')
-      .bind(body.verified ? 1 : 0, clampStr(body.id, 60))
+      .bind(body.verified ? 1 : 0, id)
       .run()
     if (!r.meta.changes) return fail('Vendor not found', 404)
-    return ok({ id: body.id, verified: body.verified ? 1 : 0 })
+    return ok({ id, verified: body.verified ? 1 : 0 })
   }
 
   return fail('Unknown action', 422)

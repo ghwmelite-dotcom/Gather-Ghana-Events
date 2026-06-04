@@ -52,5 +52,7 @@ console.log('slugify')
 t('basic', () => assert.equal(slugify('Bloom & Co. Florals'), 'bloom-co-florals'))
 t('trims hyphens', () => assert.equal(slugify('  --Royal Venue--  '), 'royal-venue'))
 t('empty', () => assert.equal(slugify(''), ''))
+t('trailing punctuation', () => assert.equal(slugify('hello-world.'), 'hello-world'))
+t('all special chars', () => assert.equal(slugify('!!!'), ''))
 
 console.log(`\n${n} tests passed`)
