@@ -22,6 +22,7 @@ import PlaybookDetail from './pages/PlaybookDetail.jsx'
 import Concierge from './pages/Concierge.jsx'
 import OrgDashboard from './pages/OrgDashboard.jsx'
 import OrgClient from './pages/OrgClient.jsx'
+import OrgVendors from './pages/OrgVendors.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -66,6 +67,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               element={
                 <ProtectedRoute>
                   <OrgClient />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/org/vendors"
+              element={
+                <ProtectedRoute>
+                  <OrgVendors />
                 </ProtectedRoute>
               }
             />
