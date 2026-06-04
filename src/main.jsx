@@ -13,6 +13,7 @@ import Contact from './pages/Contact.jsx'
 import Book from './pages/Book.jsx'
 import Login from './pages/Login.jsx'
 import Portal from './pages/Portal.jsx'
+import EventPage from './pages/EventPage.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -20,6 +21,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Standalone public event microsite — its own immersive chrome */}
+          <Route path="/e/:slug" element={<EventPage />} />
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/services" element={<Services />} />

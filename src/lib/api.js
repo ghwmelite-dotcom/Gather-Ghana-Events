@@ -51,6 +51,16 @@ export const api = {
 
   // ---- Portal (auth required) ----
   portal: () => request('/portal/me'),
+
+  // ---- Events (public + create) ----
+  event: (slug) => request(`/events/${encodeURIComponent(slug)}`),
+  rsvp: (slug, payload) => request(`/events/${encodeURIComponent(slug)}/rsvp`, { method: 'POST', body: payload }),
+  contribute: (slug, payload) =>
+    request(`/events/${encodeURIComponent(slug)}/contribute`, { method: 'POST', body: payload }),
+  createEvent: (payload) => request('/events', { method: 'POST', body: payload }),
+
+  // ---- FX (public) ----
+  fx: () => request('/fx'),
 }
 
 export { ApiError }

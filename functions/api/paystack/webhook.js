@@ -5,7 +5,7 @@
 
 import { ok, fail } from '../../_lib/respond.js'
 import * as paystack from '../../_lib/paystack.js'
-import { markPaid, markFailed } from '../../_lib/payments.js'
+import { reconcilePaid, reconcileFailed } from '../../_lib/reconcile.js'
 
 export async function onRequestPost({ request, env }) {
   const raw = await request.text()
@@ -25,12 +25,12 @@ export async function onRequestPost({ request, env }) {
   if (!reference) return ok() // nothing to do
 
   if (event.event === 'charge.success') {
-    await markPaid(env.DB, reference, {
+    await reconcilePaid(env.DB, reference, {
       channel: event.data.channel,
       paidAt: event.data.paid_at ? Date.parse(event.data.paid_at) : Date.now(),
     })
   } else if (event.event === 'charge.failed') {
-    await markFailed(env.DB, reference)
+    await reconcileFailed(env.DB, reference)
   }
 
   return ok()

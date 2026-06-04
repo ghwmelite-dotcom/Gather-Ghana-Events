@@ -76,3 +76,83 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
   created_at  INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_tokens_client ON auth_tokens(client_id);
+
+-- =====================================================================
+-- Platform Tier 1 — Event Pages, RSVPs, Contribution Pools
+-- =====================================================================
+
+-- Shareable public event microsite.
+CREATE TABLE IF NOT EXISTS events (
+  id                     TEXT PRIMARY KEY,
+  slug                   TEXT NOT NULL UNIQUE,
+  owner_email            TEXT,                 -- host/creator contact
+  inquiry_id             TEXT REFERENCES inquiries(id) ON DELETE SET NULL,
+  title                  TEXT NOT NULL,
+  host_names             TEXT,
+  event_type             TEXT,
+  event_date             TEXT,
+  start_time             TEXT,
+  venue                  TEXT,
+  location               TEXT,
+  cover_image            TEXT,
+  story                  TEXT,
+  currency               TEXT NOT NULL DEFAULT 'GHS',
+  visibility             TEXT NOT NULL DEFAULT 'public',  -- public | unlisted | private
+  rsvp_enabled           INTEGER NOT NULL DEFAULT 1,
+  contributions_enabled  INTEGER NOT NULL DEFAULT 1,
+  contribution_goal      INTEGER NOT NULL DEFAULT 0,       -- minor units
+  livestream_url         TEXT,
+  created_at             INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_events_slug ON events(slug);
+
+CREATE TABLE IF NOT EXISTS event_schedule (
+  id          TEXT PRIMARY KEY,
+  event_id    TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  time        TEXT,
+  title       TEXT NOT NULL,
+  description TEXT,
+  sort        INTEGER NOT NULL DEFAULT 0,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_schedule_event ON event_schedule(event_id);
+
+CREATE TABLE IF NOT EXISTS event_gallery (
+  id          TEXT PRIMARY KEY,
+  event_id    TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  url         TEXT NOT NULL,
+  caption     TEXT,
+  sort        INTEGER NOT NULL DEFAULT 0,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_gallery_event ON event_gallery(event_id);
+
+CREATE TABLE IF NOT EXISTS rsvps (
+  id          TEXT PRIMARY KEY,
+  event_id    TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  name        TEXT NOT NULL,
+  email       TEXT,
+  phone       TEXT,
+  status      TEXT NOT NULL DEFAULT 'yes',   -- yes | no | maybe
+  party_size  INTEGER NOT NULL DEFAULT 1,
+  message     TEXT,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_rsvps_event ON rsvps(event_id);
+
+-- Guest contributions to an event's pool (cash registry).
+CREATE TABLE IF NOT EXISTS contributions (
+  id          TEXT PRIMARY KEY,
+  event_id    TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  name        TEXT,
+  email       TEXT,
+  amount      INTEGER NOT NULL,              -- minor units
+  currency    TEXT NOT NULL DEFAULT 'GHS',
+  message     TEXT,
+  anonymous   INTEGER NOT NULL DEFAULT 0,
+  status      TEXT NOT NULL DEFAULT 'pending', -- pending | success | failed
+  reference   TEXT NOT NULL UNIQUE,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_contributions_event ON contributions(event_id);
+CREATE INDEX IF NOT EXISTS idx_contributions_reference ON contributions(reference);
