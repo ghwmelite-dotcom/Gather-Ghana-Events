@@ -3,7 +3,7 @@
 //   POST { action, ... }  -> grant | revoke | invite
 // Config ORGANIZER_EMAILS are permanent (cannot be revoked from the UI).
 
-import { ok, json, fail, readJson } from '../../_lib/respond.js'
+import { ok, fail, readJson } from '../../_lib/respond.js'
 import { uid, now, clampStr, isEmail } from '../../_lib/util.js'
 import { currentOrganizer, isOrganizerEmail, issueMagicLink } from '../../_lib/auth.js'
 import { sendMagicLink } from '../../_lib/email.js'
@@ -22,7 +22,7 @@ export async function onRequestGet({ request, env }) {
     source: isOrganizerEmail(env, c.email) ? 'config' : 'db',
     isSelf: c.id === org.id,
   }))
-  return json({ ok: true, configEmails: configList(env), members })
+  return ok({ configEmails: configList(env), members })
 }
 
 export async function onRequestPost({ request, env }) {
@@ -36,7 +36,9 @@ export async function onRequestPost({ request, env }) {
     const email = clampStr(body.email, 160).toLowerCase()
     const client = body.clientId
       ? await db.prepare('SELECT id FROM clients WHERE id = ?').bind(clampStr(body.clientId, 60)).first()
-      : await db.prepare('SELECT id FROM clients WHERE email = ?').bind(email).first()
+      : email && isEmail(email)
+        ? await db.prepare('SELECT id FROM clients WHERE email = ?').bind(email).first()
+        : null
     if (!client) return fail('No client with that email — use Invite instead', 404)
     await db.prepare('UPDATE clients SET is_organizer = 1 WHERE id = ?').bind(client.id).run()
     return ok({ clientId: client.id })
