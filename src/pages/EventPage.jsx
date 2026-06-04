@@ -251,6 +251,9 @@ export default function EventPage() {
           {countdown && !countdown.past && (
             <p className="rise rise-3 mt-4 text-champagne-light tnum">In {countdown.days} days, {countdown.hours} hours</p>
           )}
+          {countdown?.past && (
+            <p className="rise rise-3 mt-4 text-champagne-light italic font-display text-lg">A beautiful day, beautifully remembered.</p>
+          )}
           <div className="rise rise-4 mt-8 flex flex-wrap items-center gap-4">
             <Button href="#rsvp" variant="gold" size="lg">RSVP</Button>
             {event.contributions_enabled && <Button href="#gift" variant="ghostLight" size="lg">Send a gift</Button>}

@@ -67,3 +67,23 @@ export async function currentClientId(request, env) {
   if (!token) return null
   return readSession(token, env.SESSION_SECRET || 'dev-insecure-secret')
 }
+
+/** Is this email an organizer/admin? Configured via ORGANIZER_EMAILS (comma list). */
+export function isOrganizerEmail(env, email) {
+  if (!email) return false
+  const list = (env.ORGANIZER_EMAILS || 'demo@gatherghana.events,hello@gatherghana.events')
+    .toLowerCase()
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  return list.includes(email.toLowerCase())
+}
+
+/** Resolve the signed-in organizer (clientId + email), or null if not an organizer. */
+export async function currentOrganizer(request, env) {
+  const clientId = await currentClientId(request, env)
+  if (!clientId) return null
+  const client = await env.DB.prepare('SELECT id, email, name FROM clients WHERE id = ?').bind(clientId).first()
+  if (!client || !isOrganizerEmail(env, client.email)) return null
+  return client
+}

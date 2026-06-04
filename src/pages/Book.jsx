@@ -9,6 +9,8 @@ import { CheckCircle, Lock, CreditCard, ArrowLeft, ArrowRight } from '../lib/ico
 import { api, ApiError } from '../lib/api.js'
 import { isEmail, isPhone, required, validate } from '../lib/validate.js'
 import { useCurrency } from '../lib/CurrencyContext.jsx'
+import { formatMoney, toMinor } from '../lib/money.js'
+import { schedule } from '../../functions/_lib/financing.js'
 
 const eventTypes = [
   { key: 'Wedding', base: 35000 },
@@ -22,6 +24,29 @@ const rules = {
   email: [{ test: (v) => isEmail(v), message: 'Enter a valid email for confirmation & portal access.' }],
   phone: [{ test: (v) => isPhone(v), message: 'Enter a valid Ghana number, e.g. +233 24 123 4567.' }],
   date: [{ test: required, message: 'Choose your event date.' }],
+}
+
+function FinancingCard({ total }) {
+  const [months, setMonths] = useState(6)
+  const plan = schedule(toMinor(total, 'GHS'), months, { depositPct: 30 })
+  const per = plan.installments[0]?.amount || 0
+  return (
+    <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
+      <h2 className="font-display text-plum text-lg">Plan now, pay over time</h2>
+      <p className="text-ink/55 text-sm mt-1">Secure your date with 30%, spread the rest by Mobile Money.</p>
+      <div className="mt-4 flex gap-2">
+        {[3, 6, 12].map((m) => (
+          <button key={m} type="button" onClick={() => setMonths(m)}
+            className={`flex-1 py-2 rounded-xl border text-sm ${months === m ? 'border-plum bg-plum text-cream' : 'border-plum/20 text-ink/70 hover:border-plum/50'}`}>{m} mo</button>
+        ))}
+      </div>
+      <dl className="mt-4 space-y-2 text-sm">
+        <div className="flex justify-between"><dt className="text-ink/60">Deposit today</dt><dd className="text-plum tnum">{formatMoney(plan.deposit, 'GHS')}</dd></div>
+        <div className="flex justify-between"><dt className="text-ink/60">Then {months} × monthly</dt><dd className="text-terracotta tnum">{formatMoney(per, 'GHS')}</dd></div>
+      </dl>
+      <p className="mt-3 text-xs text-ink/45">Interest-free. Final schedule confirmed with your planner.</p>
+    </div>
+  )
 }
 
 export default function Book() {
@@ -300,6 +325,8 @@ export default function Book() {
                 requirements.
               </p>
             </div>
+
+            <FinancingCard total={total} />
 
             <div className="rounded-3xl bg-plum text-cream p-7">
               <h2 className="font-display text-xl mb-5">What happens next</h2>

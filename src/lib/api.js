@@ -75,6 +75,13 @@ export const api = {
 
   // ---- AI concierge (public) ----
   concept: (payload) => request('/ai/concept', { method: 'POST', body: payload }),
+
+  // ---- Organizer OS (organizer auth) ----
+  orgOverview: () => request('/org/overview'),
+  createProposal: (payload) => request('/org/proposals', { method: 'POST', body: payload }),
+
+  // ---- Financing (public) ----
+  financingPlan: (payload) => request('/financing/plan', { method: 'POST', body: payload }),
 }
 
 export { ApiError }

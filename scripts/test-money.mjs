@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { toMinor, fromMinor, formatMoney, feeMinor } from '../functions/_lib/money.js'
 import { convertMinor } from '../functions/_lib/fx.js'
 import { applyAction, canTransition, escrowTotals } from '../functions/_lib/escrow.js'
+import { schedule } from '../functions/_lib/financing.js'
 
 let n = 0
 const t = (name, fn) => { fn(); n++; console.log('  ok', name) }
@@ -33,5 +34,17 @@ t('totals', () => assert.deepEqual(
   ]),
   { held: 150, released: 200 }
 ))
+
+console.log('financing')
+t('deposit 30%', () => assert.equal(schedule(100000, 6).deposit, 30000))
+t('installments sum to financed', () => {
+  const s = schedule(100000, 6)
+  assert.equal(s.installments.reduce((a, i) => a + i.amount, 0), s.financed)
+})
+t('rounding exact', () => {
+  const s = schedule(100001, 7) // financed 70001 over 7 -> no cents lost
+  assert.equal(s.installments.reduce((a, i) => a + i.amount, 0), s.financed)
+})
+t('months clamped', () => assert.equal(schedule(50000, 99).months, 24))
 
 console.log(`\n${n} tests passed`)
