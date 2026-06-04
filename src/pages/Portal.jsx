@@ -172,12 +172,19 @@ export default function Portal() {
               Hello, {client?.name?.split(' ')[0] || 'there'}.
             </h1>
           </div>
-          <button
-            onClick={logout}
-            className="inline-flex items-center gap-2 text-sm text-cream/70 hover:text-cream border border-cream/20 rounded-full px-5 py-2.5 transition-colors"
-          >
-            <LogOut size={16} /> Sign out
-          </button>
+          <div className="flex items-center gap-3">
+            {client?.isOrganizer && (
+              <Button to="/org" variant="gold" size="sm">
+                Organizer dashboard <ArrowRight size={16} />
+              </Button>
+            )}
+            <button
+              onClick={logout}
+              className="inline-flex items-center gap-2 text-sm text-cream/70 hover:text-cream border border-cream/20 rounded-full px-5 py-2.5 transition-colors"
+            >
+              <LogOut size={16} /> Sign out
+            </button>
+          </div>
         </Container>
       </section>
 

@@ -22,9 +22,9 @@ export default function Login() {
   // idle | sending | sent | verifying | error
   const [devLink, setDevLink] = useState('')
 
-  // Already signed in → go straight to the portal.
+  // Already signed in → organizers to the dashboard, clients to the portal.
   useEffect(() => {
-    if (client) navigate('/portal', { replace: true })
+    if (client) navigate(client.isOrganizer ? '/org' : '/portal', { replace: true })
   }, [client, navigate])
 
   // Magic-link arrival: verify the token, then enter the portal.
@@ -36,7 +36,7 @@ export default function Login() {
         const res = await api.verifyMagicLink(token)
         if (cancelled) return
         setClient(res.client)
-        navigate('/portal', { replace: true })
+        navigate(res.client?.isOrganizer ? '/org' : '/portal', { replace: true })
       } catch (err) {
         if (cancelled) return
         setStatus('error')
