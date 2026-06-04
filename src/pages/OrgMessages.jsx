@@ -11,6 +11,7 @@ const statusChip = {
   new: 'bg-champagne/25 text-terracotta',
   read: 'bg-plum/10 text-ink/55',
   replied: 'bg-kente/15 text-kente',
+  _default: 'bg-ink/10 text-ink/50',
 }
 
 export default function OrgMessages() {
@@ -49,6 +50,7 @@ export default function OrgMessages() {
     </Container></Section>
   )
   if (state === 'error' || !data) return <div className="min-h-dvh grid place-items-center text-terracotta">Couldn't load messages.</div>
+  const messages = data.messages || []
 
   return (
     <>
@@ -63,20 +65,20 @@ export default function OrgMessages() {
 
       <Section tone="cream" pad="md">
         <Container className="max-w-3xl space-y-3">
-          {data.messages.length === 0 ? <p className="text-ink/55 text-sm">No messages.</p> : data.messages.map((m) => (
+          {messages.length === 0 ? <p className="text-ink/55 text-sm">No messages.</p> : messages.map((m) => (
             <div key={m.id} className="rounded-2xl bg-cream-deep border border-plum/8 p-5">
-              <button onClick={() => (openId === m.id ? setOpenId(null) : openMessage(m))} className="w-full text-left flex flex-wrap items-center justify-between gap-3">
+              <button aria-label={`${openId === m.id ? 'Collapse' : 'Expand'} message from ${m.name}`} onClick={() => (openId === m.id ? setOpenId(null) : openMessage(m))} className="w-full text-left flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-display text-plum">{m.name} <span className="text-ink/45 text-sm font-sans">· {m.email}</span></p>
                   <p className="text-ink/55 text-xs">{fmtDate(m.created_at)}</p>
                 </div>
-                <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusChip[m.status] || statusChip.read}`}>{m.status}</span>
+                <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusChip[m.status] ?? statusChip._default}`}>{m.status}</span>
               </button>
               {openId === m.id && (
                 <div className="mt-4 pt-4 border-t border-plum/10">
                   <p className="text-ink/75 text-sm whitespace-pre-line leading-relaxed">{m.body}</p>
                   <div className="mt-4">
-                    <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={4} placeholder={`Reply to ${m.name}…`}
+                    <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={4} aria-label={`Reply to ${m.name}`} placeholder={`Reply to ${m.name}…`}
                       className="w-full rounded-xl border border-plum/15 bg-cream px-4 py-3 text-ink text-sm" />
                     {err && <p role="alert" className="text-terracotta text-sm mt-2">{err}</p>}
                     <div className="mt-3 flex items-center gap-3">
