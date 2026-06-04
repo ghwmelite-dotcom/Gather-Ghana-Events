@@ -1,6 +1,10 @@
 // WhatsApp Cloud API helpers. Env-gated; no-ops when unconfigured.
+// (Held off for now — kept ready. Telegram is the active chat channel.)
+
+import { intentReply } from './messaging.js'
 
 export const isConfigured = (env) => Boolean(env.WHATSAPP_TOKEN && env.WHATSAPP_PHONE_ID)
+export const reply = intentReply
 
 export async function sendText(env, to, body) {
   if (!isConfigured(env)) return false
@@ -14,14 +18,4 @@ export async function sendText(env, to, body) {
   } catch {
     return false
   }
-}
-
-// Simple intent router for inbound text.
-export function reply(text, site) {
-  const t = (text || '').trim().toLowerCase()
-  if (/rsvp/.test(t)) return `To RSVP, open your invite link and tap RSVP. Need help? ${site}/contact`
-  if (/pay|gift|contribut|deposit/.test(t)) return `You can send a gift or pay securely from the event page or your portal: ${site}/portal`
-  if (/status|update|timeline/.test(t)) return `See your event timeline & payments in your client portal: ${site}/portal`
-  if (/plan|book|quote|start/.test(t)) return `Let's plan your event! Start here: ${site}/book`
-  return `Akwaaba! 🇬🇭 This is Gather Ghana Events.\n• "plan" — start planning\n• "rsvp" — RSVP to an event\n• "pay" — send a gift / pay\n• "status" — your event updates\nOr visit ${site}`
 }

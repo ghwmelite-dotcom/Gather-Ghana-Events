@@ -5,10 +5,11 @@
 import { ok, fail, readJson } from '../_lib/respond.js'
 import { uid, now, isEmail, clampStr } from '../_lib/util.js'
 import * as paystack from '../_lib/paystack.js'
+import { sendInquiryEmails } from '../_lib/email.js'
 
 const EVENT_TYPES = ['Wedding', 'Birthday', 'Corporate', 'Other']
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   const body = await readJson(request)
 
   const name = clampStr(body.name, 120)
@@ -63,6 +64,11 @@ export async function onRequestPost({ request, env }) {
     )
     .bind(inquiryId, clientId, type, date, guests, estimate, deposit, notes, ts)
     .run()
+
+  // Fire-and-forget confirmation + organizer notification (no-op without Resend).
+  const site = env.SITE_URL || new URL(request.url).origin
+  const emailJob = sendInquiryEmails(env, { clientEmail: email, clientName: name, type, date, site })
+  if (waitUntil) waitUntil(emailJob); else await emailJob.catch(() => {})
 
   // Initialize a Paystack deposit, if configured and a deposit is due.
   let payment = null

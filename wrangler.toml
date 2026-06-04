@@ -15,6 +15,7 @@ pages_build_output_dir = "dist"
 ENVIRONMENT = "production"
 PAYSTACK_CURRENCY = "GHS"
 PAYSTACK_CHANNELS = "mobile_money,card"
+WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 
 # D1 binding.
 [[d1_databases]]
@@ -22,8 +23,16 @@ binding = "DB"
 database_name = "gather-ghana"
 database_id = "7434495a-7c4f-4ea2-9d95-b75f2ac2ca51"
 
+# Workers AI — powers the "Akwaaba" concierge for free (no external key).
+# Default model is set in code (WORKERS_AI_MODEL var can override).
+[ai]
+binding = "AI"
+
 # Secrets (set with `wrangler pages secret put <NAME> --project-name=gather-ghana-events`):
-#   PAYSTACK_SECRET_KEY   sk_test_... or sk_live_...   (enables payments)
-#   SESSION_SECRET        long random string           (signs portal sessions)
-#   RESEND_API_KEY        optional — enables magic-link emails
-#   EMAIL_FROM            optional — e.g. "Gather Ghana <hello@yourdomain>"
+#   SESSION_SECRET        long random string           (signs portal sessions) — SET
+#   RESEND_API_KEY        Resend API key               (enables ALL transactional email)
+#   EMAIL_FROM            e.g. "Gather Ghana <hello@gatherghana.events>" (verified Resend domain)
+#   TELEGRAM_BOT_TOKEN    BotFather token              (enables the Telegram bot)
+#   TELEGRAM_SECRET       optional webhook secret header for Telegram
+#   PAYSTACK_SECRET_KEY   sk_test_/sk_live_            (held off for now)
+#   WHATSAPP_TOKEN/_PHONE_ID/_VERIFY_TOKEN              (held off for now)
