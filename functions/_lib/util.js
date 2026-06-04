@@ -46,3 +46,10 @@ export const isEmail = (v) =>
   typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
 
 export const clampStr = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
+
+/** URL slug: lowercase, non-alphanumerics → single hyphens, trimmed. */
+export const slugify = (v) =>
+  (typeof v === 'string' ? v : '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')

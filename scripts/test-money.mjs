@@ -4,6 +4,7 @@ import { toMinor, fromMinor, formatMoney, feeMinor } from '../functions/_lib/mon
 import { convertMinor } from '../functions/_lib/fx.js'
 import { applyAction, canTransition, escrowTotals } from '../functions/_lib/escrow.js'
 import { schedule } from '../functions/_lib/financing.js'
+import { slugify } from '../functions/_lib/util.js'
 
 let n = 0
 const t = (name, fn) => { fn(); n++; console.log('  ok', name) }
@@ -46,5 +47,10 @@ t('rounding exact', () => {
   assert.equal(s.installments.reduce((a, i) => a + i.amount, 0), s.financed)
 })
 t('months clamped', () => assert.equal(schedule(50000, 99).months, 24))
+
+console.log('slugify')
+t('basic', () => assert.equal(slugify('Bloom & Co. Florals'), 'bloom-co-florals'))
+t('trims hyphens', () => assert.equal(slugify('  --Royal Venue--  '), 'royal-venue'))
+t('empty', () => assert.equal(slugify(''), ''))
 
 console.log(`\n${n} tests passed`)
