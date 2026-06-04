@@ -26,6 +26,15 @@ export async function onRequestGet({ request, env }) {
   // The "current" event is the most recent inquiry.
   const primary = inquiries[0] || null
 
+  const { results: proposals } = await db
+    .prepare(
+      `SELECT p.id, p.title, p.amount, p.currency, p.status, p.body, p.created_at
+       FROM proposals p JOIN inquiries i ON i.id = p.inquiry_id
+       WHERE i.client_id = ? ORDER BY p.created_at DESC`
+    )
+    .bind(clientId)
+    .all()
+
   let timeline = []
   let payments = []
   let paidTotal = 0 // pesewas
@@ -63,6 +72,7 @@ export async function onRequestGet({ request, env }) {
     client,
     primary,
     inquiries,
+    proposals,
     timeline,
     payments,
     summary: {

@@ -1,7 +1,7 @@
-// GET /api/auth/session — returns the signed-in client, or 401.
+// GET /api/auth/session — returns the signed-in client (+ organizer flag), or 401.
 
 import { json, unauthorized } from '../../_lib/respond.js'
-import { currentClientId } from '../../_lib/auth.js'
+import { currentClientId, isOrganizerEmail } from '../../_lib/auth.js'
 
 export async function onRequestGet({ request, env }) {
   const clientId = await currentClientId(request, env)
@@ -13,5 +13,5 @@ export async function onRequestGet({ request, env }) {
     .first()
   if (!client) return unauthorized()
 
-  return json({ ok: true, client })
+  return json({ ok: true, client: { ...client, isOrganizer: isOrganizerEmail(env, client.email) } })
 }

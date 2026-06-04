@@ -78,7 +78,14 @@ export const api = {
 
   // ---- Organizer OS (organizer auth) ----
   orgOverview: () => request('/org/overview'),
+  orgClient: (id) => request(`/org/clients/${encodeURIComponent(id)}`),
   createProposal: (payload) => request('/org/proposals', { method: 'POST', body: payload }),
+  orgMilestone: (payload) => request('/org/milestones', { method: 'POST', body: payload }),
+  orgInquiryStatus: (inquiryId, status) => request('/org/inquiry', { method: 'POST', body: { inquiryId, status } }),
+  orgVerifyVendor: (slug, verified) => request('/org/vendors', { method: 'POST', body: { slug, verified } }),
+
+  // ---- Proposals (client accepts/declines) ----
+  proposalAction: (proposalId, action) => request('/portal/proposals', { method: 'POST', body: { proposalId, action } }),
 
   // ---- Financing (public) ----
   financingPlan: (payload) => request('/financing/plan', { method: 'POST', body: payload }),

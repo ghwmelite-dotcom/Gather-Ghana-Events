@@ -3,7 +3,7 @@
 
 import { json, fail, readJson } from '../../_lib/respond.js'
 import { now, sha256Hex, clampStr } from '../../_lib/util.js'
-import { createSession, sessionCookie } from '../../_lib/auth.js'
+import { createSession, sessionCookie, isOrganizerEmail } from '../../_lib/auth.js'
 
 export async function onRequestPost({ request, env }) {
   const { token } = await readJson(request)
@@ -34,7 +34,7 @@ export async function onRequestPost({ request, env }) {
   const secure = (env.SITE_URL || '').startsWith('https') || env.ENVIRONMENT === 'production'
 
   return json(
-    { ok: true, client: { id: client.id, email: client.email, name: client.name } },
+    { ok: true, client: { id: client.id, email: client.email, name: client.name, isOrganizer: isOrganizerEmail(env, client.email) } },
     200,
     { 'Set-Cookie': sessionCookie(session, { secure }) }
   )

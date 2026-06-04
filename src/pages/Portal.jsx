@@ -17,6 +17,13 @@ const escrowChip = {
   disputed: { label: 'Under review', cls: 'bg-plum/10 text-ink/50' },
 }
 
+const proposalChip = {
+  sent: { label: 'Awaiting your decision', cls: 'bg-champagne/20 text-terracotta' },
+  accepted: { label: 'Accepted', cls: 'bg-kente/15 text-kente' },
+  declined: { label: 'Declined', cls: 'bg-plum/10 text-ink/50' },
+  draft: { label: 'Draft', cls: 'bg-plum/5 text-ink/40' },
+}
+
 const WHATSAPP_URL = 'https://wa.me/233000000000'
 
 const statusStyles = {
@@ -114,6 +121,19 @@ export default function Portal() {
       await load()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not update the milestone.')
+    } finally {
+      setActing(null)
+    }
+  }
+
+  const actOnProposal = async (proposalId, action) => {
+    setActing(proposalId)
+    setError('')
+    try {
+      await api.proposalAction(proposalId, action)
+      await load()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not update the proposal.')
     } finally {
       setActing(null)
     }
@@ -219,6 +239,49 @@ export default function Portal() {
                   <h2 className="font-display text-plum text-2xl mb-6">Planning timeline</h2>
                   <Timeline items={data.timeline} onAction={actOnMilestone} acting={acting} />
                 </div>
+
+                {data.proposals?.length > 0 && (
+                  <div className="rounded-3xl bg-cream-deep border border-plum/8 p-8">
+                    <h2 className="font-display text-plum text-2xl mb-1">Proposals</h2>
+                    <p className="text-ink/55 text-sm mb-6">Quotes from your planner. Accept one to move forward.</p>
+                    <ul className="space-y-4">
+                      {data.proposals.map((p) => {
+                        const chip = proposalChip[p.status] || proposalChip.draft
+                        const pending = p.status === 'sent'
+                        return (
+                          <li key={p.id} className="rounded-2xl border border-plum/10 p-5">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <h3 className="font-display text-plum text-lg">{p.title}</h3>
+                                <span className={`mt-1 inline-block text-[11px] px-2 py-0.5 rounded-full ${chip.cls}`}>{chip.label}</span>
+                              </div>
+                              <span className="font-display text-plum text-xl tnum">{formatMoney(p.amount, p.currency)}</span>
+                            </div>
+                            {p.body && <p className="text-ink/65 text-sm mt-3 leading-relaxed whitespace-pre-line">{p.body}</p>}
+                            {pending && (
+                              <div className="mt-4 flex flex-wrap gap-3">
+                                <button
+                                  onClick={() => actOnProposal(p.id, 'accept')}
+                                  disabled={acting === p.id}
+                                  className="inline-flex items-center gap-1.5 text-sm rounded-full bg-plum text-cream px-5 py-2 hover:bg-plum-soft transition-colors disabled:opacity-50"
+                                >
+                                  {acting === p.id ? <Spinner size={14} /> : <CheckCircle size={14} />} Accept
+                                </button>
+                                <button
+                                  onClick={() => actOnProposal(p.id, 'decline')}
+                                  disabled={acting === p.id}
+                                  className="text-sm rounded-full border border-plum/20 text-plum px-5 py-2 hover:bg-plum/5 transition-colors disabled:opacity-50"
+                                >
+                                  Decline
+                                </button>
+                              </div>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               {/* Payments */}
