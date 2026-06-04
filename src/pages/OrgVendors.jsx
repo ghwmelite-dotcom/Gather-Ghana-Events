@@ -16,6 +16,7 @@ export default function OrgVendors() {
   const [busy, setBusy] = useState(false)
   const [form, setForm] = useState(BLANK)
   const [editId, setEditId] = useState(null)
+  const [err, setErr] = useState('')
 
   const load = useCallback(async () => {
     try { setData(await api.orgVendors()); setState('ok') }
@@ -23,8 +24,13 @@ export default function OrgVendors() {
   }, [])
   useEffect(() => { load() }, [load])
 
-  const run = async (fn) => { setBusy(true); try { await fn() } finally { setBusy(false); await load() } }
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const run = async (fn) => {
+    setBusy(true); setErr('')
+    try { await fn() }
+    catch (e) { setErr(e instanceof ApiError ? e.message : 'Something went wrong.') }
+    finally { setBusy(false); await load() }
+  }
+  const set = (k) => (e) => { const v = e.target.value; setForm((prev) => ({ ...prev, [k]: v })) }
   const reset = () => { setForm(BLANK); setEditId(null) }
 
   const save = () => run(async () => {
@@ -51,6 +57,7 @@ export default function OrgVendors() {
   if (state === 'error' || !data) return <div className="min-h-dvh grid place-items-center text-terracotta">Couldn't load vendors.</div>
 
   const cats = data.categories || []
+  const vendors = data.vendors || []
 
   return (
     <>
@@ -65,9 +72,10 @@ export default function OrgVendors() {
 
       <Section tone="cream" pad="md">
         <Container className="grid lg:grid-cols-3 gap-8 items-start">
+          {err && <p role="alert" className="lg:col-span-3 text-terracotta text-sm">{err}</p>}
           {/* List */}
           <div className="lg:col-span-2 space-y-3">
-            {data.vendors.length === 0 ? <p className="text-ink/55 text-sm">No vendors yet — add one.</p> : data.vendors.map((v) => (
+            {vendors.length === 0 ? <p className="text-ink/55 text-sm">No vendors yet — add one.</p> : vendors.map((v) => (
               <div key={v.id} className="rounded-2xl bg-cream-deep border border-plum/8 p-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-display text-plum flex items-center gap-2">
@@ -77,9 +85,9 @@ export default function OrgVendors() {
                   <p className="text-ink/50 text-xs capitalize">{v.category}{v.location ? ` · ${v.location}` : ''} · from {formatMoney(v.price_from, v.currency)}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button disabled={busy} onClick={() => run(() => api.orgVendorAction({ action: 'verify', id: v.id, verified: !v.verified }))} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">{v.verified ? 'Unverify' : 'Verify'}</button>
-                  <button disabled={busy} onClick={() => edit(v)} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">Edit</button>
-                  <button disabled={busy} onClick={() => { if (confirm(`Delete ${v.name}?`)) run(() => api.orgVendorAction({ action: 'delete', id: v.id })) }} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Delete</button>
+                  <button aria-label={`${v.verified ? 'Unverify' : 'Verify'} ${v.name}`} disabled={busy} onClick={() => run(() => api.orgVendorAction({ action: 'verify', id: v.id, verified: !v.verified }))} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">{v.verified ? 'Unverify' : 'Verify'}</button>
+                  <button aria-label={`Edit ${v.name}`} disabled={busy} onClick={() => edit(v)} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">Edit</button>
+                  <button aria-label={`Delete ${v.name}`} disabled={busy} onClick={() => { if (confirm(`Delete ${v.name}?`)) run(() => api.orgVendorAction({ action: 'delete', id: v.id })) }} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Delete</button>
                 </div>
               </div>
             ))}
