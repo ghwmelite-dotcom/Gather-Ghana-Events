@@ -14,15 +14,19 @@ const configList = (env) =>
 export async function onRequestGet({ request, env }) {
   const org = await currentOrganizer(request, env)
   if (!org) return fail('Organizer access required', 403)
+  const cfg = configList(env)
+  // Members = anyone with the DB role OR a config-email organizer who has a client row (has signed in).
+  const where = cfg.length ? `is_organizer = 1 OR email IN (${cfg.map(() => '?').join(',')})` : 'is_organizer = 1'
   const { results } = await env.DB
-    .prepare('SELECT id, email, name, is_organizer FROM clients WHERE is_organizer = 1 ORDER BY name')
+    .prepare(`SELECT id, email, name, is_organizer FROM clients WHERE ${where} ORDER BY name`)
+    .bind(...cfg)
     .all()
   const members = results.map((c) => ({
     clientId: c.id, email: c.email, name: c.name,
     source: isOrganizerEmail(env, c.email) ? 'config' : 'db',
     isSelf: c.id === org.id,
   }))
-  return ok({ configEmails: configList(env), members })
+  return ok({ configEmails: cfg, members })
 }
 
 export async function onRequestPost({ request, env }) {

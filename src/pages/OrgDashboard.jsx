@@ -194,7 +194,7 @@ export default function OrgDashboard() {
                 {data.messages.length === 0 ? <p className="text-ink/55 text-sm">No messages.</p> : (
                   <ul className="space-y-3">
                     {data.messages.slice(0, 6).map((m, i) => (
-                      <li key={i} className="text-sm border-t border-plum/8 pt-3 first:border-0 first:pt-0">
+                      <li key={m.id || i} className="text-sm border-t border-plum/8 pt-3 first:border-0 first:pt-0">
                         <p className="text-plum font-medium">{m.name}</p>
                         <p className="text-ink/60 line-clamp-2">{m.body}</p>
                       </li>
