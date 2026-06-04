@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import { AuthProvider } from './lib/AuthContext.jsx'
+import { CurrencyProvider } from './lib/CurrencyContext.jsx'
 import Layout from './components/Layout.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import Home from './pages/Home.jsx'
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
+       <CurrencyProvider>
         <Routes>
           {/* Standalone public event microsite — its own immersive chrome */}
           <Route path="/e/:slug" element={<EventPage />} />
@@ -42,6 +44,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
+       </CurrencyProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,

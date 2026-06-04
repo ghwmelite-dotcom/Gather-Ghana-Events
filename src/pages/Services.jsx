@@ -6,7 +6,8 @@ import Reveal from '../components/ui/Reveal.jsx'
 import { Section, Container, Eyebrow } from '../components/ui/Section.jsx'
 import FAQ from '../components/sections/FAQ.jsx'
 import { ArrowRight, Check } from '../lib/icons.jsx'
-import { packages, fmtGhs } from '../lib/content.js'
+import { packages } from '../lib/content.js'
+import { useCurrency } from '../lib/CurrencyContext.jsx'
 import { img } from '../lib/images.js'
 
 const detailed = [
@@ -38,6 +39,7 @@ const process = [
 ]
 
 function Pricing() {
+  const { fmtGhs, isForeign, currency } = useCurrency()
   return (
     <Section tone="creamDeep">
       <Container>
@@ -50,6 +52,11 @@ function Pricing() {
             Every event is bespoke, so every quote is tailored. These indicative starting
             figures give you a sense of where each service begins.
           </p>
+          {isForeign && (
+            <p className="mt-3 text-sm text-terracotta">
+              Shown in {currency} for convenience · events are billed in GH₵.
+            </p>
+          )}
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 items-start">

@@ -8,7 +8,7 @@ import { Container, Section } from '../components/ui/Section.jsx'
 import { CheckCircle, Lock, CreditCard, ArrowLeft, ArrowRight } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { isEmail, isPhone, required, validate } from '../lib/validate.js'
-import { fmtGhs } from '../lib/content.js'
+import { useCurrency } from '../lib/CurrencyContext.jsx'
 
 const eventTypes = [
   { key: 'Wedding', base: 35000 },
@@ -32,6 +32,7 @@ export default function Book() {
   const [status, setStatus] = useState('idle') // idle | submitting | redirecting | done
   const [serverError, setServerError] = useState('')
   const [params] = useSearchParams()
+  const { fmtGhs, isForeign, currency } = useCurrency()
   const paymentResult = params.get('payment') // success | failed | error (from Paystack callback)
 
   // Returning from Paystack checkout: reflect the outcome.
@@ -289,6 +290,11 @@ export default function Book() {
               <div className="mt-5 flex items-center gap-2 text-xs text-ink/55">
                 <CreditCard size={15} /> Secured by Paystack · Mobile Money &amp; card
               </div>
+              {isForeign && (
+                <p className="mt-2 text-xs text-terracotta">
+                  Shown in {currency} · charged in GH₵ at checkout.
+                </p>
+              )}
               <p className="mt-3 text-xs text-ink/45 leading-relaxed">
                 Indicative only — your final quote is tailored to your vision, guest count, and
                 requirements.

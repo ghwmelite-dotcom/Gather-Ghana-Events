@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { Container } from './ui/Section.jsx'
 import KenteBand from './ui/KenteBand.jsx'
+import CurrencySelect from './ui/CurrencySelect.jsx'
 import { Menu, Close, TikTok, WhatsApp, Mail, MapPin, ArrowRight } from '../lib/icons.jsx'
 
 const navItems = [
@@ -103,6 +104,7 @@ function Header() {
               {item.label}
             </NavLink>
           ))}
+          <CurrencySelect tone={onHero ? 'light' : 'dark'} />
           <Link
             to="/book"
             className={`inline-flex items-center gap-2 text-sm tracking-wide px-5 py-2.5 rounded-full transition-all shadow-sm hover:shadow-md ${
