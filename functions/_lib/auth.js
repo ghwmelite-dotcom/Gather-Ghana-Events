@@ -4,7 +4,7 @@
 // Stored in an httpOnly, Secure, SameSite=Lax cookie so the SPA can't read it
 // but the browser sends it with same-origin /api requests.
 
-import { b64urlEncode, b64urlDecode, hmacHex, safeEqual, now } from './util.js'
+import { b64urlEncode, b64urlDecode, hmacHex, safeEqual, now, uid, sha256Hex } from './util.js'
 
 const COOKIE = 'gge_session'
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30 // 30 days
@@ -79,11 +79,28 @@ export function isOrganizerEmail(env, email) {
   return list.includes(email.toLowerCase())
 }
 
+/** True if this client is an organizer — config bootstrap OR the DB role. */
+export function isOrganizer(env, client) {
+  if (!client) return false
+  return isOrganizerEmail(env, client.email) || client.is_organizer === 1
+}
+
+/** Mint a single-use magic link for a client; stores only the token hash. */
+export async function issueMagicLink(env, client, site) {
+  const token = uid('') + uid('')
+  const tokenHash = await sha256Hex(token)
+  await env.DB
+    .prepare('INSERT INTO auth_tokens (token_hash, client_id, expires_at, used, created_at) VALUES (?, ?, ?, 0, ?)')
+    .bind(tokenHash, client.id, magicTokenTtl(), now())
+    .run()
+  return `${site}/login?token=${token}`
+}
+
 /** Resolve the signed-in organizer (clientId + email), or null if not an organizer. */
 export async function currentOrganizer(request, env) {
   const clientId = await currentClientId(request, env)
   if (!clientId) return null
-  const client = await env.DB.prepare('SELECT id, email, name FROM clients WHERE id = ?').bind(clientId).first()
-  if (!client || !isOrganizerEmail(env, client.email)) return null
+  const client = await env.DB.prepare('SELECT id, email, name, is_organizer FROM clients WHERE id = ?').bind(clientId).first()
+  if (!client || !isOrganizer(env, client)) return null
   return client
 }

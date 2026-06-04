@@ -3,8 +3,8 @@
 // endpoint never reveals which emails exist.
 
 import { ok, fail, readJson } from '../../_lib/respond.js'
-import { uid, now, sha256Hex, isEmail, clampStr } from '../../_lib/util.js'
-import { magicTokenTtl } from '../../_lib/auth.js'
+import { isEmail, clampStr } from '../../_lib/util.js'
+import { issueMagicLink } from '../../_lib/auth.js'
 import { sendMagicLink, emailConfigured } from '../../_lib/email.js'
 
 export async function onRequestPost({ request, env }) {
@@ -20,18 +20,8 @@ export async function onRequestPost({ request, env }) {
   // Unknown email: respond ok without sending anything.
   if (!client) return ok({ sent: true })
 
-  // Mint a random token; store only its hash.
-  const token = uid('') + uid('')
-  const tokenHash = await sha256Hex(token)
-  await env.DB
-    .prepare(
-      'INSERT INTO auth_tokens (token_hash, client_id, expires_at, used, created_at) VALUES (?, ?, ?, 0, ?)'
-    )
-    .bind(tokenHash, client.id, magicTokenTtl(), now())
-    .run()
-
   const site = env.SITE_URL || new URL(request.url).origin
-  const link = `${site}/login?token=${token}`
+  const link = await issueMagicLink(env, client, site)
 
   await sendMagicLink(env, { to: email, link, name: client.name })
 

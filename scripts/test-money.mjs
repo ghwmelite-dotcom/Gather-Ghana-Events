@@ -5,6 +5,7 @@ import { convertMinor } from '../functions/_lib/fx.js'
 import { applyAction, canTransition, escrowTotals } from '../functions/_lib/escrow.js'
 import { schedule } from '../functions/_lib/financing.js'
 import { slugify } from '../functions/_lib/util.js'
+import { isOrganizer } from '../functions/_lib/auth.js'
 
 let n = 0
 const t = (name, fn) => { fn(); n++; console.log('  ok', name) }
@@ -54,5 +55,12 @@ t('trims hyphens', () => assert.equal(slugify('  --Royal Venue--  '), 'royal-ven
 t('empty', () => assert.equal(slugify(''), ''))
 t('trailing punctuation', () => assert.equal(slugify('hello-world.'), 'hello-world'))
 t('all special chars', () => assert.equal(slugify('!!!'), ''))
+
+console.log('organizer')
+const oenv = { ORGANIZER_EMAILS: 'boss@x.com' }
+t('config email', () => assert.equal(isOrganizer(oenv, { email: 'boss@x.com', is_organizer: 0 }), true))
+t('db flag', () => assert.equal(isOrganizer(oenv, { email: 'other@x.com', is_organizer: 1 }), true))
+t('neither', () => assert.equal(isOrganizer(oenv, { email: 'other@x.com', is_organizer: 0 }), false))
+t('null client', () => assert.equal(isOrganizer(oenv, null), false))
 
 console.log(`\n${n} tests passed`)
