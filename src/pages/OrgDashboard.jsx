@@ -142,6 +142,7 @@ export default function OrgDashboard() {
           <nav aria-label="Organizer tools" className="mt-5 flex flex-wrap gap-2">
             <Link to="/org/vendors" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Vendors</Link>
             <Link to="/org/messages" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Inbox</Link>
+            <Link to="/org/team" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Team</Link>
           </nav>
         </Container>
       </section>

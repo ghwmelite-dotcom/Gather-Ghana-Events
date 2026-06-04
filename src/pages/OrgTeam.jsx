@@ -24,7 +24,7 @@ export default function OrgTeam() {
   const run = async (fn) => { setBusy(true); setErr(''); setMsg('') ; try { await fn() } catch (e) { setErr(e instanceof ApiError ? e.message : 'Action failed.') } finally { setBusy(false); await load() } }
   const sendInvite = () => run(async () => {
     const res = await api.orgOrganizerAction({ action: 'invite', email: invite.email, name: invite.name })
-    setMsg(res.emailed ? 'Invite sent — they'll get a sign-in link.' : 'Added, but the invite email could not be sent.')
+    setMsg(res.emailed ? "Invite sent — they'll get a sign-in link." : 'Added, but the invite email could not be sent.')
     setInvite({ email: '', name: '' })
   })
   const revoke = (m) => { if (confirm(`Revoke organizer access for ${m.email}?`)) run(() => api.orgOrganizerAction({ action: 'revoke', clientId: m.clientId })) }

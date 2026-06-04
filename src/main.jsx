@@ -24,6 +24,7 @@ import OrgDashboard from './pages/OrgDashboard.jsx'
 import OrgClient from './pages/OrgClient.jsx'
 import OrgVendors from './pages/OrgVendors.jsx'
 import OrgMessages from './pages/OrgMessages.jsx'
+import OrgTeam from './pages/OrgTeam.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -84,6 +85,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               element={
                 <ProtectedRoute>
                   <OrgMessages />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/org/team"
+              element={
+                <ProtectedRoute>
+                  <OrgTeam />
                 </ProtectedRoute>
               }
             />
