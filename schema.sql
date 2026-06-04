@@ -5,11 +5,12 @@ PRAGMA foreign_keys = ON;
 
 -- People who inquire or book.
 CREATE TABLE IF NOT EXISTS clients (
-  id          TEXT PRIMARY KEY,
-  email       TEXT NOT NULL UNIQUE,
-  name        TEXT NOT NULL,
-  phone       TEXT,
-  created_at  INTEGER NOT NULL
+  id           TEXT PRIMARY KEY,
+  email        TEXT NOT NULL UNIQUE,
+  name         TEXT NOT NULL,
+  phone        TEXT,
+  is_organizer INTEGER NOT NULL DEFAULT 0,
+  created_at   INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
 
