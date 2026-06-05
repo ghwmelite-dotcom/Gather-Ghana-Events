@@ -2,6 +2,26 @@
 // Each group: { id, label, blurb, sections }. Each section: { id, icon, title, intro, steps?, note? }.
 // `icon` must be an export name from src/lib/icons.jsx.
 
+export const GUIDE_OVERVIEW = {
+  id: 'overview',
+  title: 'What is Gather Ghana?',
+  lead: [
+    'Gather Ghana Events is an all-in-one platform for planning, paying for, and celebrating Ghanaian weddings and events — from the very first enquiry to the last dance. It brings the planner, the couple, and the guests together in one warm, trusted space.',
+    'Couples plan alongside their organizer in a private portal, pay securely by Mobile Money or card, and stay in control with escrow that releases only when they approve each stage. Guests — at home or across the diaspora — RSVP and send gifts through a beautiful event page. And planners run the entire business from a single dashboard.',
+  ],
+  highlights: [
+    { icon: 'Users', title: 'Plan with a pro', text: 'Book a planner and follow every detail in your private client portal.' },
+    { icon: 'Lock', title: 'The Gather Guarantee', text: 'Payments sit safely in escrow and release only when you approve each milestone.' },
+    { icon: 'Calendar', title: 'Beautiful event pages', text: 'A shareable page per celebration with schedule, gallery and RSVPs.' },
+    { icon: 'Heart', title: 'Gifts from everyone', text: 'Guests near and far contribute to your gift pool.' },
+    { icon: 'CreditCard', title: 'Built for the diaspora', text: 'Loved ones abroad give in their own currency; you’re settled in GHS.' },
+    { icon: 'Building', title: 'Verified vendors', text: 'Discover and book trusted vendors in the marketplace.' },
+    { icon: 'Sparkles', title: 'Akwaaba AI & playbooks', text: 'An AI concierge and Ghanaian cultural playbooks guide the planning.' },
+    { icon: 'Clock', title: 'Plan now, pay over time', text: 'Spread the cost with a deposit and gentle instalments.' },
+  ],
+  closing: 'Below, jump into the details — whether you’re running events as an organizer or planning your own celebration.',
+}
+
 export const GUIDE_GROUPS = [
   {
     id: 'organizers',

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Seo from '../components/Seo.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
 import * as Icons from '../lib/icons.jsx'
-import { GUIDE_GROUPS } from '../lib/guide.js'
+import { GUIDE_OVERVIEW, GUIDE_GROUPS } from '../lib/guide.js'
 
 const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -19,8 +19,8 @@ const scrollToId = (id) => {
 }
 
 export default function Guide() {
-  const [active, setActive] = useState(GUIDE_GROUPS[0]?.sections[0]?.id)
-  const sectionIds = useRef(GUIDE_GROUPS.flatMap((g) => g.sections.map((s) => s.id)))
+  const [active, setActive] = useState(GUIDE_OVERVIEW.id)
+  const sectionIds = useRef([GUIDE_OVERVIEW.id, ...GUIDE_GROUPS.flatMap((g) => g.sections.map((s) => s.id))])
 
   // Deep links like /guide#clients or /guide#org-escrow scroll into view on load.
   useEffect(() => {
@@ -64,6 +64,17 @@ export default function Guide() {
         <Container className="grid lg:grid-cols-[230px_1fr] gap-10 items-start">
           {/* Sticky TOC (desktop) */}
           <nav aria-label="Guide contents" className="hidden lg:block lg:sticky lg:top-28">
+            <ul className="space-y-1.5 border-l border-plum/10 mb-6">
+              <li>
+                <a
+                  href="#overview"
+                  onClick={(e) => onTocClick(e, 'overview')}
+                  className={`block pl-3 -ml-px border-l-2 text-sm transition-colors ${active === 'overview' ? 'border-terracotta text-plum font-medium' : 'border-transparent text-ink/55 hover:text-plum'}`}
+                >
+                  Overview
+                </a>
+              </li>
+            </ul>
             {GUIDE_GROUPS.map((g) => (
               <div key={g.id} className="mb-6">
                 <p className="text-xs uppercase tracking-wider text-ink/40 mb-2">{g.label}</p>
@@ -89,6 +100,7 @@ export default function Guide() {
             <details className="lg:hidden mb-8 rounded-2xl bg-cream-deep border border-plum/8 p-4">
               <summary className="font-display text-plum cursor-pointer">Contents</summary>
               <div className="mt-3 space-y-3">
+                <a href="#overview" className="block text-sm text-terracotta link-underline">Overview</a>
                 {GUIDE_GROUPS.map((g) => (
                   <div key={g.id}>
                     <p className="text-xs uppercase tracking-wider text-ink/40 mb-1">{g.label}</p>
@@ -101,6 +113,25 @@ export default function Guide() {
                 ))}
               </div>
             </details>
+
+            <section id="overview" className="scroll-mt-28 mb-12">
+              <h2 className="font-display text-plum text-3xl">{GUIDE_OVERVIEW.title}</h2>
+              <div className="mt-3 space-y-3">
+                {GUIDE_OVERVIEW.lead.map((para, i) => <p key={i} className="text-ink/70 leading-relaxed">{para}</p>)}
+              </div>
+              <div className="mt-6 grid sm:grid-cols-2 gap-3">
+                {GUIDE_OVERVIEW.highlights.map((h) => (
+                  <div key={h.title} className="rounded-2xl bg-cream-deep border border-plum/8 p-4 flex gap-3">
+                    <span className="grid place-items-center w-9 h-9 rounded-full bg-plum/5 text-terracotta shrink-0"><Icon name={h.icon} size={18} /></span>
+                    <div>
+                      <p className="font-display text-plum text-sm">{h.title}</p>
+                      <p className="text-ink/60 text-xs leading-relaxed mt-0.5">{h.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-6 text-ink/55 text-sm italic">{GUIDE_OVERVIEW.closing}</p>
+            </section>
 
             {GUIDE_GROUPS.map((g) => (
               <div key={g.id} id={g.id} className="mb-12 scroll-mt-28">
