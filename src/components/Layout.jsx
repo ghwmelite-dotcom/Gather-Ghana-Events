@@ -208,6 +208,7 @@ function Footer() {
               ))}
               <li><Link to="/playbooks" className="link-underline">Playbooks</Link></li>
               <li><Link to="/concierge" className="link-underline">AI Concierge</Link></li>
+              <li><Link to="/guide" className="link-underline">Guide</Link></li>
               <li><Link to="/book" className="link-underline">Start Planning</Link></li>
               <li><Link to="/portal" className="link-underline">Client Portal</Link></li>
             </ul>

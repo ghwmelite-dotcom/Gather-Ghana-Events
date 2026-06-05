@@ -25,6 +25,7 @@ import OrgClient from './pages/OrgClient.jsx'
 import OrgVendors from './pages/OrgVendors.jsx'
 import OrgMessages from './pages/OrgMessages.jsx'
 import OrgTeam from './pages/OrgTeam.jsx'
+import Guide from './pages/Guide.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -46,6 +47,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/playbooks" element={<Playbooks />} />
             <Route path="/playbooks/:slug" element={<PlaybookDetail />} />
             <Route path="/concierge" element={<Concierge />} />
+            <Route path="/guide" element={<Guide />} />
             <Route path="/book" element={<Book />} />
             <Route path="/login" element={<Login />} />
             <Route
