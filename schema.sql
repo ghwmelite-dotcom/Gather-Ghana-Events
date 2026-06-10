@@ -211,3 +211,54 @@ CREATE TABLE IF NOT EXISTS proposals (
   created_at    INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_proposals_inquiry ON proposals(inquiry_id);
+
+-- =====================================================================
+-- Organizer Ops & Books — team tasks, expenses, activity trail
+-- =====================================================================
+
+-- Team to-dos, optionally tied to a client's event.
+CREATE TABLE IF NOT EXISTS tasks (
+  id             TEXT PRIMARY KEY,
+  inquiry_id     TEXT REFERENCES inquiries(id) ON DELETE CASCADE,  -- NULL = general task
+  title          TEXT NOT NULL,
+  notes          TEXT,
+  assignee_email TEXT,
+  due_date       TEXT,
+  status         TEXT NOT NULL DEFAULT 'open',   -- open | in_progress | done
+  created_by     TEXT,
+  completed_at   INTEGER,
+  created_at     INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tasks_inquiry ON tasks(inquiry_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_status  ON tasks(status);
+
+-- Cost lines per event (or general overhead). planned+committed lines ARE the budget.
+CREATE TABLE IF NOT EXISTS expenses (
+  id          TEXT PRIMARY KEY,
+  inquiry_id  TEXT REFERENCES inquiries(id) ON DELETE CASCADE,  -- NULL = general/overhead
+  vendor_name TEXT,
+  category    TEXT NOT NULL DEFAULT 'misc',
+  description TEXT,
+  amount      INTEGER NOT NULL,                 -- minor units (pesewas)
+  currency    TEXT NOT NULL DEFAULT 'GHS',
+  status      TEXT NOT NULL DEFAULT 'planned',  -- planned | committed | paid
+  paid_at     INTEGER,
+  receipt_url TEXT,
+  created_by  TEXT,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_expenses_inquiry ON expenses(inquiry_id);
+
+-- Who did what, when — written best-effort by every org/portal mutation.
+CREATE TABLE IF NOT EXISTS activity_log (
+  id          TEXT PRIMARY KEY,
+  actor_email TEXT,
+  action      TEXT NOT NULL,        -- e.g. inquiry.status, task.create, expense.paid
+  entity_type TEXT,
+  entity_id   TEXT,
+  inquiry_id  TEXT,                 -- when related to a client/event, for filtering
+  detail      TEXT,                 -- human-readable summary line
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_activity_inquiry ON activity_log(inquiry_id);
