@@ -7,6 +7,7 @@ import { schedule } from '../functions/_lib/financing.js'
 import { slugify } from '../functions/_lib/util.js'
 import { isOrganizer } from '../functions/_lib/auth.js'
 import { expenseTotals, bookSummary, toCsv } from '../functions/_lib/books.js'
+import { unreadCounts } from '../functions/_lib/threads.js'
 
 let n = 0
 const t = (name, fn) => { fn(); n++; console.log('  ok', name) }
@@ -92,5 +93,18 @@ t('toCsv escaping', () => assert.equal(
   'a,b\r\n"x,y","he said ""hi"""\r\n"line\nbreak",7'
 ))
 t('toCsv null cells', () => assert.equal(toCsv(['a', 'b'], [[null, undefined]]), 'a,b\r\n,'))
+
+console.log('threads')
+t('unreadCounts groups client-unread by inquiry', () => assert.deepEqual(
+  unreadCounts([
+    { inquiry_id: 'a', sender_role: 'client', read_by_org: 0 },
+    { inquiry_id: 'a', sender_role: 'client', read_by_org: 0 },
+    { inquiry_id: 'b', sender_role: 'client', read_by_org: 0 },
+    { inquiry_id: 'a', sender_role: 'client', read_by_org: 1 },   // already read
+    { inquiry_id: 'b', sender_role: 'organizer', read_by_org: 0 }, // org-sent, not inbound
+  ]),
+  { byInquiry: { a: 2, b: 1 }, total: 3 }
+))
+t('unreadCounts empty', () => assert.deepEqual(unreadCounts([]), { byInquiry: {}, total: 0 }))
 
 console.log(`\n${n} tests passed`)

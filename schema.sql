@@ -262,3 +262,30 @@ CREATE TABLE IF NOT EXISTS activity_log (
 );
 CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_activity_inquiry ON activity_log(inquiry_id);
+
+-- =====================================================================
+-- Client Messaging — persistent inbox replies + organizer<->client threads
+-- =====================================================================
+
+-- Replies the organizer sends from the inbox (full history, emailed via Resend).
+CREATE TABLE IF NOT EXISTS message_replies (
+  id           TEXT PRIMARY KEY,
+  message_id   TEXT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+  author_email TEXT,
+  body         TEXT NOT NULL,
+  created_at   INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_replies_message ON message_replies(message_id);
+
+-- Organizer<->client conversation, one thread per inquiry (event).
+CREATE TABLE IF NOT EXISTS thread_messages (
+  id             TEXT PRIMARY KEY,
+  inquiry_id     TEXT NOT NULL REFERENCES inquiries(id) ON DELETE CASCADE,
+  sender_role    TEXT NOT NULL,              -- organizer | client
+  sender_email   TEXT,
+  body           TEXT NOT NULL,
+  read_by_org    INTEGER NOT NULL DEFAULT 0, -- a message is born read by its sender
+  read_by_client INTEGER NOT NULL DEFAULT 0,
+  created_at     INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_thread_inquiry ON thread_messages(inquiry_id);
