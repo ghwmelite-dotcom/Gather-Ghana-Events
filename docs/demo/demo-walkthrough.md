@@ -81,8 +81,12 @@ Walk one event end-to-end:
 4. **Milestones + the Gather Guarantee**: you mark funded → request release → *the
    client* approves. *"Their money is protected, your professionalism is visible —
    that's why couples say yes to you."*
-5. Back on your side: the client page shows money, costs, margin, tasks, and the
-   activity trail for that one event.
+5. **Messages** — point at the unread badge on the Mensah lead row, open the client
+   page, and show the conversation (Ama is asking about a jollof tasting). Reply live;
+   it lands in her portal *and* her email. *"No more decisions lost in WhatsApp —
+   the conversation lives with the event."*
+6. Back on your side: the client page shows money, costs, margin, tasks, messages,
+   and the activity trail for that one event.
 
 ### Act 5 — The "and more" montage (3 min, fast)
 
