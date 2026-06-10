@@ -99,6 +99,10 @@ export const api = {
   },
   orgExpenseAction: (payload) => request('/org/expenses', { method: 'POST', body: payload }),
   orgBooks: () => request('/org/books'),
+  orgThread: (inquiry) => request(`/org/thread?inquiry=${encodeURIComponent(inquiry)}`),
+  orgThreadSend: (payload) => request('/org/thread', { method: 'POST', body: payload }),
+  portalThread: (inquiry) => request(`/portal/thread?inquiry=${encodeURIComponent(inquiry)}`),
+  portalThreadSend: (payload) => request('/portal/thread', { method: 'POST', body: payload }),
   orgActivity: (query = {}) => {
     const qs = new URLSearchParams(Object.entries(query).filter(([, v]) => v)).toString()
     return request(`/org/activity${qs ? `?${qs}` : ''}`)

@@ -70,7 +70,17 @@ export const GUIDE_GROUPS = [
         intro: 'Messages from the contact form land in your inbox.',
         steps: [
           'Open Inbox and tap a message to read it — opening it marks it as read.',
-          'Write a reply and send; it’s emailed to the sender and the message is marked replied.',
+          'Write a reply and send; it’s emailed to the sender and kept in the inbox history.',
+          'Messages from existing clients carry an “Existing client” link to their page.',
+        ],
+      },
+      {
+        id: 'org-thread', icon: 'Mail', title: 'Messages with clients',
+        intro: 'Every event has its own conversation, kept with the record.',
+        steps: [
+          'On a client’s page, write in the Messages card — the client gets an email and sees it in their portal.',
+          'Client replies show an unread badge on the lead in your dashboard.',
+          'Opening the client page marks the conversation read.',
         ],
       },
       {
@@ -147,6 +157,15 @@ export const GUIDE_GROUPS = [
           'When a milestone is funded and release is requested, you’ll see Approve & release.',
           'Approve once the stage is done — your money is protected until then.',
         ],
+      },
+      {
+        id: 'cl-messages', icon: 'Mail', title: 'Messaging your planner',
+        intro: 'Talk to your planner without leaving your portal.',
+        steps: [
+          'Open the Messages card in your portal and write your message.',
+          'Your planner is emailed instantly and replies appear right there.',
+        ],
+        note: 'The whole conversation stays with your event — nothing gets lost in chat apps.',
       },
       {
         id: 'cl-events', icon: 'Heart', title: 'Event pages, RSVPs & gifts',

@@ -67,16 +67,32 @@ export default function OrgMessages() {
         <Container className="max-w-3xl space-y-3">
           {messages.length === 0 ? <p className="text-ink/55 text-sm">No messages.</p> : messages.map((m) => (
             <div key={m.id} className="rounded-2xl bg-cream-deep border border-plum/8 p-5">
-              <button aria-label={`${openId === m.id ? 'Collapse' : 'Expand'} message from ${m.name}`} onClick={() => (openId === m.id ? setOpenId(null) : openMessage(m))} className="w-full text-left flex flex-wrap items-center justify-between gap-3">
-                <div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <button aria-label={`${openId === m.id ? 'Collapse' : 'Expand'} message from ${m.name}`} onClick={() => (openId === m.id ? setOpenId(null) : openMessage(m))} className="flex-1 min-w-[200px] text-left">
                   <p className="font-display text-plum">{m.name} <span className="text-ink/45 text-sm font-sans">· {m.email}</span></p>
                   <p className="text-ink/55 text-xs">{fmtDate(m.created_at)}</p>
-                </div>
-                <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusChip[m.status] ?? statusChip._default}`}>{m.status}</span>
-              </button>
+                </button>
+                <span className="flex items-center gap-2">
+                  {m.inquiry_id && (
+                    <Link to={`/org/clients/${m.inquiry_id}`}
+                      className="text-[11px] px-2 py-0.5 rounded-full bg-terracotta/15 text-terracotta font-medium">Existing client →</Link>
+                  )}
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusChip[m.status] ?? statusChip._default}`}>{m.status}</span>
+                </span>
+              </div>
               {openId === m.id && (
                 <div className="mt-4 pt-4 border-t border-plum/10">
                   <p className="text-ink/75 text-sm whitespace-pre-line leading-relaxed">{m.body}</p>
+                  {(m.replies || []).length > 0 && (
+                    <ul className="mt-4 space-y-2">
+                      {m.replies.map((r) => (
+                        <li key={r.id} className="rounded-xl bg-plum/5 border border-plum/8 px-4 py-3">
+                          <p className="text-ink/70 text-sm whitespace-pre-line leading-relaxed">{r.body}</p>
+                          <p className="text-ink/45 text-xs mt-1.5">↳ {r.author_email} · {fmtDate(r.created_at)}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <div className="mt-4">
                     <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={4} aria-label={`Reply to ${m.name}`} placeholder={`Reply to ${m.name}…`}
                       className="w-full rounded-xl border border-plum/15 bg-cream px-4 py-3 text-ink text-sm" />

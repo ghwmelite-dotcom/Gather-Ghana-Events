@@ -99,6 +99,9 @@ export default function Portal() {
   const [error, setError] = useState('')
   const [paying, setPaying] = useState(false)
   const [acting, setActing] = useState(null)
+  const [thread, setThread] = useState([])
+  const [msg, setMsg] = useState('')
+  const [sending, setSending] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -112,6 +115,20 @@ export default function Portal() {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  const primaryId = data?.primary?.id
+  const loadThread = useCallback(async () => {
+    if (!primaryId) return
+    try { setThread((await api.portalThread(primaryId)).messages || []) } catch { /* noop */ }
+  }, [primaryId])
+  useEffect(() => { loadThread() }, [loadThread])
+
+  const sendMessage = async () => {
+    setSending(true)
+    try { await api.portalThreadSend({ inquiryId: primaryId, body: msg }); setMsg(''); await loadThread() }
+    catch { /* noop */ }
+    finally { setSending(false) }
+  }
 
   const actOnMilestone = async (milestoneId, action) => {
     setActing(milestoneId)
@@ -289,6 +306,33 @@ export default function Portal() {
                     </ul>
                   </div>
                 )}
+                {/* Messages with the planner */}
+                <div className="rounded-3xl bg-cream-deep border border-plum/8 p-8">
+                  <h2 className="font-display text-plum text-2xl mb-1">Messages</h2>
+                  <p className="text-ink/55 text-sm mb-6">Talk to your planner — everything stays with your event.</p>
+                  {thread.length === 0 ? (
+                    <p className="text-ink/55 text-sm">No messages yet. Say hello!</p>
+                  ) : (
+                    <ul className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                      {thread.map((t) => (
+                        <li key={t.id} className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${t.sender_role === 'client' ? 'ml-auto bg-plum text-cream rounded-br-md' : 'bg-cream border border-plum/10 text-ink/80 rounded-bl-md'}`}>
+                          <p className="whitespace-pre-line leading-relaxed">{t.body}</p>
+                          <p className={`text-[10px] mt-1 ${t.sender_role === 'client' ? 'text-cream/55' : 'text-ink/40'}`}>
+                            {t.sender_role === 'organizer' ? 'Your planner · ' : ''}
+                            {new Date(t.created_at).toLocaleString('en-GH', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="mt-5 pt-5 border-t border-plum/10 flex items-end gap-2">
+                    <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={2} aria-label="Message your planner" placeholder="Write to your planner…"
+                      className="flex-1 rounded-xl border border-plum/15 bg-cream px-4 py-2.5 text-ink text-sm resize-none" />
+                    <Button onClick={sendMessage} disabled={!msg.trim() || sending} variant="primary" size="sm">
+                      {sending ? 'Sending…' : 'Send'}
+                    </Button>
+                  </div>
+                </div>
               </div>
 
               {/* Payments */}

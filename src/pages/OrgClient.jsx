@@ -34,6 +34,13 @@ export default function OrgClient() {
   const [task, setTask] = useState({ title: '', due_date: '', assignee_email: '' })
   const [cost, setCost] = useState({ amount: '', category: 'misc', vendor_name: '' })
   const [team, setTeam] = useState([])
+  const [thread, setThread] = useState([])
+  const [msg, setMsg] = useState('')
+
+  const loadThread = useCallback(async () => {
+    try { setThread((await api.orgThread(id)).messages || []) } catch { /* noop */ }
+  }, [id])
+  useEffect(() => { loadThread() }, [loadThread])
 
   const load = useCallback(async () => {
     try { setData(await api.orgClient(id)); setState('ok') }
@@ -256,6 +263,32 @@ export default function OrgClient() {
                 <Field className="flex-1 min-w-[140px]" label="New proposal" value={prop.title} onChange={(e) => setProp({ ...prop, title: e.target.value })} placeholder="Full planning & styling" />
                 <Field label="GH₵" type="number" value={prop.amount} onChange={(e) => setProp({ ...prop, amount: e.target.value })} />
                 <Button disabled={!prop.title || busy} onClick={() => run(() => api.createProposal({ inquiryId: id, title: prop.title, amount: prop.amount })).then(() => setProp({ title: '', amount: '' }))} variant="primary" size="sm">Send</Button>
+              </div>
+            </div>
+
+            {/* Messages with the client */}
+            <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
+              <h2 className="font-display text-plum text-xl mb-1">Messages</h2>
+              <p className="text-ink/50 text-sm mb-4">{inquiry.name.split(' ')[0]} sees these in their portal and gets an email.</p>
+              {thread.length === 0 ? <p className="text-ink/55 text-sm">No messages yet — start the conversation.</p> : (
+                <ul className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                  {thread.map((t) => (
+                    <li key={t.id} className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${t.sender_role === 'organizer' ? 'ml-auto bg-plum text-cream rounded-br-md' : 'bg-cream border border-plum/10 text-ink/80 rounded-bl-md'}`}>
+                      <p className="whitespace-pre-line leading-relaxed">{t.body}</p>
+                      <p className={`text-[10px] mt-1 ${t.sender_role === 'organizer' ? 'text-cream/55' : 'text-ink/40'}`}>
+                        {new Date(t.created_at).toLocaleString('en-GH', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-4 pt-4 border-t border-plum/10 flex items-end gap-2">
+                <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={2} aria-label={`Message ${inquiry.name}`} placeholder="Write a message…"
+                  className="flex-1 rounded-xl border border-plum/15 bg-cream px-4 py-2.5 text-ink text-sm resize-none" />
+                <Button disabled={!msg.trim() || busy} variant="primary" size="sm"
+                  onClick={async () => { setBusy(true); try { await api.orgThreadSend({ inquiryId: id, body: msg }); setMsg(''); await loadThread() } finally { setBusy(false) } }}>
+                  Send
+                </Button>
               </div>
             </div>
 

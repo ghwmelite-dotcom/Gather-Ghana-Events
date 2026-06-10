@@ -74,7 +74,11 @@ function LeadRow({ lead, onProposal }) {
   return (
     <>
       <tr className="border-t border-plum/8">
-        <td className="py-3 pr-4"><Link to={`/org/clients/${lead.id}`} className="font-medium text-plum link-underline">{lead.name}</Link><p className="text-ink/50 text-xs">{lead.email}</p></td>
+        <td className="py-3 pr-4">
+          <Link to={`/org/clients/${lead.id}`} className="font-medium text-plum link-underline">{lead.name}</Link>
+          {lead.unread > 0 && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-terracotta text-cream font-semibold align-middle" title={`${lead.unread} unread message${lead.unread > 1 ? 's' : ''}`}>{lead.unread}</span>}
+          <p className="text-ink/50 text-xs">{lead.email}</p>
+        </td>
         <td className="py-3 pr-4 text-ink/70">{lead.event_type}</td>
         <td className="py-3 pr-4 text-ink/70 whitespace-nowrap">{fmtDate(lead.event_date)}</td>
         <td className="py-3 pr-4 text-plum tnum">{ghs(lead.estimate)}</td>
