@@ -6,6 +6,7 @@ import { applyAction, canTransition, escrowTotals } from '../functions/_lib/escr
 import { schedule } from '../functions/_lib/financing.js'
 import { slugify } from '../functions/_lib/util.js'
 import { isOrganizer } from '../functions/_lib/auth.js'
+import { expenseTotals, bookSummary, toCsv } from '../functions/_lib/books.js'
 
 let n = 0
 const t = (name, fn) => { fn(); n++; console.log('  ok', name) }
@@ -62,5 +63,34 @@ t('config email', () => assert.equal(isOrganizer(oenv, { email: 'boss@x.com', is
 t('db flag', () => assert.equal(isOrganizer(oenv, { email: 'other@x.com', is_organizer: 1 }), true))
 t('neither', () => assert.equal(isOrganizer(oenv, { email: 'other@x.com', is_organizer: 0 }), false))
 t('null client', () => assert.equal(isOrganizer(oenv, null), false))
+
+console.log('books')
+t('expenseTotals', () => assert.deepEqual(
+  expenseTotals([
+    { status: 'planned', amount: 100 }, { status: 'committed', amount: 200 },
+    { status: 'paid', amount: 300 }, { status: 'paid', amount: 50 },
+  ]),
+  { planned: 100, committed: 200, paid: 350, total: 650 }
+))
+t('expenseTotals empty', () => assert.deepEqual(expenseTotals([]), { planned: 0, committed: 0, paid: 0, total: 0 }))
+t('bookSummary', () => assert.deepEqual(
+  bookSummary({ estimateMinor: 1000, collectedMinor: 400, expenses: [
+    { status: 'paid', amount: 150 }, { status: 'planned', amount: 250 },
+  ] }),
+  { estimate: 1000, collected: 400, outstanding: 600,
+    costs: { planned: 250, committed: 0, paid: 150, total: 400 },
+    projectedMargin: 600, actualMargin: 250 }
+))
+t('bookSummary overspend goes negative', () => assert.equal(
+  bookSummary({ estimateMinor: 100, collectedMinor: 0, expenses: [{ status: 'paid', amount: 300 }] }).projectedMargin, -200
+))
+t('bookSummary outstanding never negative', () => assert.equal(
+  bookSummary({ estimateMinor: 100, collectedMinor: 250, expenses: [] }).outstanding, 0
+))
+t('toCsv escaping', () => assert.equal(
+  toCsv(['a', 'b'], [['x,y', 'he said "hi"'], ['line\nbreak', 7]]),
+  'a,b\r\n"x,y","he said ""hi"""\r\n"line\nbreak",7'
+))
+t('toCsv null cells', () => assert.equal(toCsv(['a', 'b'], [[null, undefined]]), 'a,b\r\n,'))
 
 console.log(`\n${n} tests passed`)
