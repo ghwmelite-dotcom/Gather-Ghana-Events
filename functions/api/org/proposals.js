@@ -5,7 +5,8 @@
 import { ok, json, fail, readJson } from '../../_lib/respond.js'
 import { uid, now, clampStr } from '../../_lib/util.js'
 import { currentOrganizer } from '../../_lib/auth.js'
-import { toMinor } from '../../_lib/money.js'
+import { toMinor, formatMoney } from '../../_lib/money.js'
+import { logActivity } from '../../_lib/activity.js'
 
 export async function onRequestPost({ request, env }) {
   const org = await currentOrganizer(request, env)
@@ -17,13 +18,18 @@ export async function onRequestPost({ request, env }) {
   if (!inquiryId || !title) return fail('inquiryId and title are required', 422)
 
   const id = uid('prop_')
+  const amount = toMinor(parseFloat(body.amount) || 0, 'GHS')
   await env.DB
     .prepare(
       `INSERT INTO proposals (id, inquiry_id, organizer_email, title, amount, currency, body, status, created_at)
        VALUES (?, ?, ?, ?, ?, 'GHS', ?, 'sent', ?)`
     )
-    .bind(id, inquiryId, org.email, title, toMinor(parseFloat(body.amount) || 0, 'GHS'), clampStr(body.body, 4000), now())
+    .bind(id, inquiryId, org.email, title, amount, clampStr(body.body, 4000), now())
     .run()
+  await logActivity(env.DB, {
+    actor: org.email, action: 'proposal.send', entityType: 'proposal', entityId: id,
+    inquiryId, detail: `Proposal "${title}" sent (${formatMoney(amount, 'GHS')})`,
+  })
   return ok({ id })
 }
 

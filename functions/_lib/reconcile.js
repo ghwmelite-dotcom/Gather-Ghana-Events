@@ -5,6 +5,8 @@
 
 import { markPaid, markFailed } from './payments.js'
 import { now } from './util.js'
+import { formatMoney } from './money.js'
+import { logActivity } from './activity.js'
 
 /**
  * @returns {Promise<{kind: 'payment'|'contribution'|null, changed: boolean}>}
@@ -12,11 +14,15 @@ import { now } from './util.js'
 export async function reconcilePaid(db, reference, { channel = null, paidAt = now() } = {}) {
   // 1) Deposit / balance payment?
   const payment = await db
-    .prepare('SELECT id FROM payments WHERE reference = ?')
+    .prepare('SELECT id, inquiry_id, amount, currency, purpose FROM payments WHERE reference = ?')
     .bind(reference)
     .first()
   if (payment) {
     const changed = await markPaid(db, reference, { channel, paidAt })
+    if (changed) await logActivity(db, {
+      actor: 'paystack', action: 'payment.success', entityType: 'payment', entityId: payment.id,
+      inquiryId: payment.inquiry_id, detail: `Payment received — ${payment.purpose || 'deposit'} (${formatMoney(payment.amount, payment.currency)})`,
+    })
     return { kind: 'payment', changed }
   }
 

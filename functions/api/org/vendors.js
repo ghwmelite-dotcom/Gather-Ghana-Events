@@ -6,6 +6,7 @@ import { ok, fail, readJson } from '../../_lib/respond.js'
 import { uid, now, clampStr, slugify } from '../../_lib/util.js'
 import { currentOrganizer } from '../../_lib/auth.js'
 import { toMinor } from '../../_lib/money.js'
+import { logActivity } from '../../_lib/activity.js'
 
 const CATEGORIES = ['catering', 'decor', 'venue', 'photography', 'music', 'cake', 'makeup']
 
@@ -60,6 +61,7 @@ export async function onRequestPost({ request, env }) {
         body.verified ? 1 : 0, clampStr(body.whatsapp, 30), now()
       )
       .run()
+    await logActivity(db, { actor: org.email, action: 'vendor.create', entityType: 'vendor', entityId: id, detail: `Vendor "${name}" added` })
     return ok({ id, slug })
   }
 
@@ -84,11 +86,15 @@ export async function onRequestPost({ request, env }) {
         clampStr(body.whatsapp, 30), id
       )
       .run()
+    await logActivity(db, { actor: org.email, action: 'vendor.update', entityType: 'vendor', entityId: id, detail: `Vendor "${name}" updated` })
     return ok({ id, slug })
   }
 
   if (action === 'delete') {
-    await db.prepare('DELETE FROM vendors WHERE id = ?').bind(clampStr(body.id, 60)).run()
+    const id = clampStr(body.id, 60)
+    const v = await db.prepare('SELECT name FROM vendors WHERE id = ?').bind(id).first()
+    await db.prepare('DELETE FROM vendors WHERE id = ?').bind(id).run()
+    if (v) await logActivity(db, { actor: org.email, action: 'vendor.delete', entityType: 'vendor', entityId: id, detail: `Vendor "${v.name}" deleted` })
     return ok({ deleted: true })
   }
 
@@ -99,6 +105,7 @@ export async function onRequestPost({ request, env }) {
       .bind(body.verified ? 1 : 0, id)
       .run()
     if (!r.meta.changes) return fail('Vendor not found', 404)
+    await logActivity(db, { actor: org.email, action: 'vendor.verify', entityType: 'vendor', entityId: id, detail: `Vendor ${body.verified ? 'verified' : 'unverified'}` })
     return ok({ id, verified: body.verified ? 1 : 0 })
   }
 

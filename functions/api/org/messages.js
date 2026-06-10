@@ -6,6 +6,7 @@ import { ok, fail, readJson } from '../../_lib/respond.js'
 import { now, clampStr, isEmail } from '../../_lib/util.js'
 import { currentOrganizer } from '../../_lib/auth.js'
 import { sendMessageReply } from '../../_lib/email.js'
+import { logActivity } from '../../_lib/activity.js'
 
 const STATUSES = ['new', 'read', 'replied']
 
@@ -43,6 +44,7 @@ export async function onRequestPost({ request, env }) {
     const sent = await sendMessageReply(env, { to: msg.email, name: msg.name, body: text, replyTo: org.email })
     if (!sent.sent) return fail('Email is not configured or failed to send', 502)
     await db.prepare('UPDATE messages SET status = ?, replied_at = ? WHERE id = ?').bind('replied', now(), msg.id).run()
+    await logActivity(db, { actor: org.email, action: 'message.reply', entityType: 'message', entityId: msg.id, detail: `Replied to ${msg.name}` })
     return ok({ id: msg.id, status: 'replied' })
   }
 
