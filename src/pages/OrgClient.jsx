@@ -5,7 +5,7 @@ import Button from '../components/ui/Button.jsx'
 import Field from '../components/ui/Field.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
 import {
-  ArrowLeft, ArrowRight, Spinner, Lock, CheckCircle, Plus, WhatsApp, Mail, Calendar, Users,
+  ArrowLeft, ArrowRight, Spinner, Lock, CheckCircle, Plus, WhatsApp, Mail, Calendar, Users, Check, Clock,
 } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { formatMoney } from '../lib/money.js'
@@ -17,6 +17,12 @@ const escrowChip = {
   funded: 'bg-champagne/20 text-terracotta', release_requested: 'bg-champagne/30 text-terracotta',
   released: 'bg-kente/15 text-kente', disputed: 'bg-plum/10 text-ink/50', none: 'bg-plum/5 text-ink/40',
 }
+const TASK_NEXT = { open: 'in_progress', in_progress: 'done', done: 'open' }
+const EXPENSE_NEXT = { planned: 'committed', committed: 'paid' }
+const EXPENSE_CATEGORIES = ['venue', 'catering', 'decor', 'photography', 'music', 'rentals', 'transport', 'staffing', 'fees', 'misc']
+const expenseChip = {
+  planned: 'bg-plum/5 text-ink/50', committed: 'bg-champagne/25 text-terracotta', paid: 'bg-kente/15 text-kente',
+}
 
 export default function OrgClient() {
   const { id } = useParams()
@@ -25,12 +31,16 @@ export default function OrgClient() {
   const [busy, setBusy] = useState(null)
   const [add, setAdd] = useState({ title: '', due_date: '', amount: '' })
   const [prop, setProp] = useState({ title: '', amount: '' })
+  const [task, setTask] = useState({ title: '', due_date: '', assignee_email: '' })
+  const [cost, setCost] = useState({ amount: '', category: 'misc', vendor_name: '' })
+  const [team, setTeam] = useState([])
 
   const load = useCallback(async () => {
     try { setData(await api.orgClient(id)); setState('ok') }
     catch (e) { setState(e instanceof ApiError && (e.status === 403 || e.status === 401) ? 'forbidden' : 'error') }
   }, [id])
   useEffect(() => { load() }, [load])
+  useEffect(() => { api.orgOrganizers().then((r) => setTeam(r.members || [])).catch(() => {}) }, [])
 
   const run = async (fn) => { setBusy(true); try { await fn() } finally { setBusy(false); await load() } }
   const milestone = (payload) => run(() => api.orgMilestone(payload))
@@ -46,7 +56,11 @@ export default function OrgClient() {
   )
   if (state === 'error' || !data) return <div className="min-h-dvh grid place-items-center text-terracotta">Couldn’t load this client.</div>
 
-  const { inquiry, milestones, payments, proposals, events, escrow, contributionsRaised } = data
+  const { inquiry, milestones, payments, proposals, events, escrow, contributionsRaised, tasks = [], expenses = [], activity = [] } = data
+  const estimateMinor = Math.round((inquiry.estimate || 0) * 100)
+  const collected = payments.filter((p) => p.status === 'success').reduce((a, p) => a + p.amount, 0)
+  const costsPaid = expenses.filter((e) => e.status === 'paid').reduce((a, e) => a + e.amount, 0)
+  const costsTotal = expenses.reduce((a, e) => a + e.amount, 0)
 
   return (
     <>
@@ -122,6 +136,87 @@ export default function OrgClient() {
                 <Button disabled={!add.title || busy} onClick={() => milestone({ action: 'upsert', inquiryId: id, title: add.title, due_date: add.due_date, amount: add.amount, status: 'upcoming' }).then(() => setAdd({ title: '', due_date: '', amount: '' }))} variant="primary" size="sm"><Plus size={16} /> Add</Button>
               </div>
             </div>
+
+            {/* Team tasks for this event */}
+            <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
+              <div className="flex items-baseline justify-between gap-3 mb-5">
+                <h2 className="font-display text-plum text-2xl">Tasks</h2>
+                <Link to="/org/tasks" className="text-sm text-terracotta inline-flex items-center gap-1 link-underline">All tasks <ArrowRight size={14} /></Link>
+              </div>
+              {tasks.length === 0 ? <p className="text-ink/55 text-sm">No tasks for this event yet.</p> : (
+                <ul className="space-y-2">
+                  {tasks.map((t) => (
+                    <li key={t.id} className="flex items-center gap-3 rounded-2xl border border-plum/8 p-3">
+                      <button aria-label={`Set "${t.title}" to ${TASK_NEXT[t.status].replace('_', ' ')}`} disabled={busy}
+                        onClick={() => run(() => api.orgTaskAction({ action: 'set_status', id: t.id, status: TASK_NEXT[t.status] }))}
+                        className={`shrink-0 size-7 rounded-full border grid place-items-center disabled:opacity-50 ${t.status === 'done' ? 'bg-kente text-cream border-kente' : t.status === 'in_progress' ? 'border-terracotta text-terracotta' : 'border-plum/25 text-plum/30 hover:border-plum/50'}`}>
+                        {t.status === 'in_progress' ? <Clock size={13} /> : <Check size={13} />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium truncate ${t.status === 'done' ? 'text-ink/40 line-through' : 'text-plum'}`}>{t.title}</p>
+                        <p className="text-xs text-ink/45">{t.assignee_email || 'Unassigned'}{t.due_date ? ` · due ${fmtDate(t.due_date)}` : ''}</p>
+                      </div>
+                      <button aria-label={`Delete ${t.title}`} disabled={busy}
+                        onClick={() => { if (confirm(`Delete "${t.title}"?`)) run(() => api.orgTaskAction({ action: 'delete', id: t.id })) }}
+                        className="text-xs rounded-full border border-terracotta/30 px-3 py-1 text-terracotta disabled:opacity-50">Delete</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-5 pt-5 border-t border-plum/10 flex flex-wrap items-end gap-3">
+                <Field className="flex-1 min-w-[160px]" label="New task" value={task.title} onChange={(e) => setTask({ ...task, title: e.target.value })} placeholder="Confirm caterer headcount" />
+                <Field label="Due" type="date" value={task.due_date} onChange={(e) => setTask({ ...task, due_date: e.target.value })} />
+                <label className="block">
+                  <span className="block text-sm text-ink/70 mb-1.5">Assign to</span>
+                  <select value={task.assignee_email} onChange={(e) => setTask({ ...task, assignee_email: e.target.value })} className="rounded-xl border border-plum/15 bg-cream px-4 py-2.5 text-ink">
+                    <option value="">Unassigned</option>
+                    {team.map((m) => <option key={m.email} value={m.email}>{m.name || m.email}</option>)}
+                  </select>
+                </label>
+                <Button disabled={!task.title || busy} onClick={() => run(() => api.orgTaskAction({ action: 'create', inquiryId: id, ...task })).then(() => setTask({ title: '', due_date: '', assignee_email: '' }))} variant="primary" size="sm"><Plus size={16} /> Add</Button>
+              </div>
+            </div>
+
+            {/* Budget & costs for this event */}
+            <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
+              <div className="flex items-baseline justify-between gap-3 mb-1">
+                <h2 className="font-display text-plum text-2xl">Budget & costs</h2>
+                <Link to="/org/books" className="text-sm text-terracotta inline-flex items-center gap-1 link-underline">Books <ArrowRight size={14} /></Link>
+              </div>
+              <p className="text-ink/50 text-sm mb-5">Planned and committed lines are the budget; paid is money out the door.</p>
+              {expenses.length === 0 ? <p className="text-ink/55 text-sm">No cost lines yet — record what this event will cost you.</p> : (
+                <ul className="space-y-2">
+                  {expenses.map((e) => (
+                    <li key={e.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-plum/8 p-3">
+                      <div className="flex-1 min-w-[150px]">
+                        <p className="text-sm font-medium text-plum">{e.vendor_name || e.description || e.category}</p>
+                        <p className="text-xs text-ink/45 capitalize">{e.category}</p>
+                      </div>
+                      <span className="font-display text-plum tnum text-sm">{formatMoney(e.amount, e.currency)}</span>
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full ${expenseChip[e.status]}`}>{e.status}</span>
+                      {EXPENSE_NEXT[e.status] && (
+                        <button disabled={busy} onClick={() => run(() => api.orgExpenseAction({ action: 'set_status', id: e.id, status: EXPENSE_NEXT[e.status] }))}
+                          className="text-xs rounded-full bg-plum text-cream px-3 py-1 disabled:opacity-50">Mark {EXPENSE_NEXT[e.status]}</button>
+                      )}
+                      <button aria-label="Delete expense" disabled={busy}
+                        onClick={() => { if (confirm('Delete this expense?')) run(() => api.orgExpenseAction({ action: 'delete', id: e.id })) }}
+                        className="text-xs rounded-full border border-terracotta/30 px-3 py-1 text-terracotta disabled:opacity-50">Delete</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-5 pt-5 border-t border-plum/10 flex flex-wrap items-end gap-3">
+                <Field label="Amount (GH₵)" type="number" value={cost.amount} onChange={(e) => setCost({ ...cost, amount: e.target.value })} />
+                <label className="block">
+                  <span className="block text-sm text-ink/70 mb-1.5">Category</span>
+                  <select value={cost.category} onChange={(e) => setCost({ ...cost, category: e.target.value })} className="rounded-xl border border-plum/15 bg-cream px-4 py-2.5 text-ink capitalize">
+                    {EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </label>
+                <Field className="flex-1 min-w-[140px]" label="Vendor / payee" value={cost.vendor_name} onChange={(e) => setCost({ ...cost, vendor_name: e.target.value })} placeholder="Bloom & Co." />
+                <Button disabled={!cost.amount || busy} onClick={() => run(() => api.orgExpenseAction({ action: 'create', inquiryId: id, ...cost })).then(() => setCost({ amount: '', category: 'misc', vendor_name: '' }))} variant="primary" size="sm"><Plus size={16} /> Add</Button>
+              </div>
+            </div>
           </div>
 
           {/* Right: payments + proposals */}
@@ -130,9 +225,12 @@ export default function OrgClient() {
               <h2 className="font-display text-xl mb-4">Money</h2>
               <dl className="space-y-2 text-sm">
                 <div className="flex justify-between"><dt className="text-cream/65">Estimate</dt><dd className="tnum">{ghs(inquiry.estimate)}</dd></div>
+                <div className="flex justify-between"><dt className="text-cream/65">Collected</dt><dd className="tnum">{formatMoney(collected, 'GHS')}</dd></div>
                 <div className="flex justify-between"><dt className="text-cream/65">Held in escrow</dt><dd className="tnum text-champagne-light">{formatMoney(escrow.held, 'GHS')}</dd></div>
                 <div className="flex justify-between"><dt className="text-cream/65">Released</dt><dd className="tnum">{formatMoney(escrow.released, 'GHS')}</dd></div>
                 <div className="flex justify-between"><dt className="text-cream/65">Contributions</dt><dd className="tnum text-champagne-light">{formatMoney(contributionsRaised, 'GHS')}</dd></div>
+                <div className="flex justify-between border-t border-cream/15 pt-2"><dt className="text-cream/65">Costs (paid / all)</dt><dd className="tnum">{formatMoney(costsPaid, 'GHS')} / {formatMoney(costsTotal, 'GHS')}</dd></div>
+                <div className="flex justify-between"><dt className="text-cream/65">Projected margin</dt><dd className={`tnum ${estimateMinor - costsTotal < 0 ? 'text-terracotta' : 'text-champagne-light'}`}>{formatMoney(estimateMinor - costsTotal, 'GHS')}</dd></div>
               </dl>
               {payments.length > 0 && (
                 <ul className="mt-4 pt-4 border-t border-cream/15 space-y-2 text-sm">
@@ -159,6 +257,21 @@ export default function OrgClient() {
                 <Field label="GH₵" type="number" value={prop.amount} onChange={(e) => setProp({ ...prop, amount: e.target.value })} />
                 <Button disabled={!prop.title || busy} onClick={() => run(() => api.createProposal({ inquiryId: id, title: prop.title, amount: prop.amount })).then(() => setProp({ title: '', amount: '' }))} variant="primary" size="sm">Send</Button>
               </div>
+            </div>
+
+            {/* Activity trail for this event */}
+            <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
+              <h2 className="font-display text-plum text-xl mb-4">Activity</h2>
+              {activity.length === 0 ? <p className="text-ink/55 text-sm">Nothing logged yet — changes to this event will show here.</p> : (
+                <ul className="space-y-3">
+                  {activity.map((a) => (
+                    <li key={a.id} className="text-sm border-t border-plum/8 pt-3 first:border-0 first:pt-0">
+                      <p className="text-ink/75">{a.detail || a.action}</p>
+                      <p className="text-ink/45 text-xs">{a.actor_email} · {new Date(a.created_at).toLocaleString('en-GH', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </Container>

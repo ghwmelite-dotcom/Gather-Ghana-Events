@@ -88,6 +88,21 @@ export const api = {
   orgMessageAction: (payload) => request('/org/messages', { method: 'POST', body: payload }),
   orgOrganizers: () => request('/org/organizers'),
   orgOrganizerAction: (payload) => request('/org/organizers', { method: 'POST', body: payload }),
+  orgTasks: (query = {}) => {
+    const qs = new URLSearchParams(Object.entries(query).filter(([, v]) => v)).toString()
+    return request(`/org/tasks${qs ? `?${qs}` : ''}`)
+  },
+  orgTaskAction: (payload) => request('/org/tasks', { method: 'POST', body: payload }),
+  orgExpenses: (query = {}) => {
+    const qs = new URLSearchParams(Object.entries(query).filter(([, v]) => v)).toString()
+    return request(`/org/expenses${qs ? `?${qs}` : ''}`)
+  },
+  orgExpenseAction: (payload) => request('/org/expenses', { method: 'POST', body: payload }),
+  orgBooks: () => request('/org/books'),
+  orgActivity: (query = {}) => {
+    const qs = new URLSearchParams(Object.entries(query).filter(([, v]) => v)).toString()
+    return request(`/org/activity${qs ? `?${qs}` : ''}`)
+  },
 
   // ---- Proposals (client accepts/declines) ----
   proposalAction: (proposalId, action) => request('/portal/proposals', { method: 'POST', body: { proposalId, action } }),

@@ -140,6 +140,8 @@ export default function OrgDashboard() {
           <p className="text-champagne-light text-sm tracking-[0.3em] uppercase mb-3">Organizer OS</p>
           <h1 className="font-display text-4xl sm:text-5xl">Welcome, {data.organizer.name?.split(' ')[0] || 'planner'}.</h1>
           <nav aria-label="Organizer tools" className="mt-5 flex flex-wrap gap-2">
+            <Link to="/org/tasks" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Tasks{data.stats.openTasks ? ` (${data.stats.openTasks})` : ''}</Link>
+            <Link to="/org/books" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Books</Link>
             <Link to="/org/vendors" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Vendors</Link>
             <Link to="/org/messages" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Inbox</Link>
             <Link to="/org/team" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Team</Link>
@@ -198,6 +200,20 @@ export default function OrgDashboard() {
                       <li key={m.id || i} className="text-sm border-t border-plum/8 pt-3 first:border-0 first:pt-0">
                         <p className="text-plum font-medium">{m.name}</p>
                         <p className="text-ink/60 line-clamp-2">{m.body}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
+                <h2 className="font-display text-plum text-xl mb-4">Recent activity</h2>
+                {(data.activity || []).length === 0 ? <p className="text-ink/55 text-sm">Nothing logged yet — actions across the team will show here.</p> : (
+                  <ul className="space-y-3">
+                    {data.activity.map((a) => (
+                      <li key={a.id} className="text-sm border-t border-plum/8 pt-3 first:border-0 first:pt-0">
+                        <p className="text-ink/75">{a.detail || a.action}</p>
+                        <p className="text-ink/45 text-xs">{a.actor_email} · {new Date(a.created_at).toLocaleString('en-GH', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</p>
                       </li>
                     ))}
                   </ul>
