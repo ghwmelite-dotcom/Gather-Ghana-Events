@@ -2,6 +2,7 @@
 
 import { json, fail } from '../../_lib/respond.js'
 import { currentOrganizer } from '../../_lib/auth.js'
+import { unreadCounts } from '../../_lib/threads.js'
 
 export async function onRequestGet({ request, env }) {
   const org = await currentOrganizer(request, env)
@@ -23,6 +24,10 @@ export async function onRequestGet({ request, env }) {
     db.prepare('SELECT id, name, email, body, status, created_at FROM messages ORDER BY created_at DESC LIMIT 10').all(),
     db.prepare('SELECT id, actor_email, action, detail, inquiry_id, created_at FROM activity_log ORDER BY created_at DESC LIMIT 12').all(),
   ])
+  const unreadRows = await db
+    .prepare("SELECT inquiry_id, sender_role, read_by_org FROM thread_messages WHERE sender_role = 'client' AND read_by_org = 0")
+    .all()
+  const unread = unreadCounts(unreadRows.results)
 
   return json({
     ok: true,
@@ -35,8 +40,9 @@ export async function onRequestGet({ request, env }) {
       escrowHeld: escrowAgg.held, // minor units
       openTasks: taskAgg.n,
       expensesPaid: expenseAgg.paid, // minor units
+      unreadMessages: unread.total,
     },
-    leads: leads.results,
+    leads: leads.results.map((l) => ({ ...l, unread: unread.byInquiry[l.id] || 0 })),
     events: events.results,
     messages: msgs.results,
     activity: activity.results,

@@ -65,6 +65,24 @@ export function sendMessageReply(env, { to, name, body, replyTo }) {
   })
 }
 
+/** Notify the other side of a new thread message. toPortal: true → recipient is the client. */
+export function sendThreadNotice(env, { to, fromName, body, site, toPortal }) {
+  const paragraphs = String(body)
+    .split('\n')
+    .map((line) => `<p style="color:#4b4148">${escHtml(line) || '&nbsp;'}</p>`)
+    .join('')
+  return sendEmail(env, {
+    to,
+    subject: `New message from ${fromName || (toPortal ? 'your planner' : 'a client')} — Gather Ghana Events`,
+    html: shell(
+      `New message from ${escHtml(fromName || (toPortal ? 'your planner' : 'a client'))}`,
+      `${paragraphs}
+       ${button(toPortal ? `${site}/portal` : `${site}/org`, toPortal ? 'Reply in your portal' : 'Reply on the dashboard')}
+       <p style="color:#6b6168;font-size:13px">Replies are kept with your event so nothing gets lost.</p>`
+    ),
+  })
+}
+
 /** Confirm a new inquiry to the client and notify the organizer. */
 export async function sendInquiryEmails(env, { clientEmail, clientName, type, date, site }) {
   const tasks = []
