@@ -82,6 +82,26 @@ export const GUIDE_GROUPS = [
         ],
       },
       {
+        id: 'org-tasks', icon: 'CheckCircle', title: 'Team tasks',
+        intro: 'Stop juggling lists — assign the work and watch it move.',
+        steps: [
+          'Open Tasks from the dashboard, or add tasks right on a client’s page.',
+          'Give each task an owner and a due date — overdue ones are flagged.',
+          'Tap the circle to move a task from open to in-progress to done.',
+        ],
+        note: 'Every change is recorded in the activity trail, so you always know who did what.',
+      },
+      {
+        id: 'org-books', icon: 'CreditCard', title: 'Books — costs, budgets & margins',
+        intro: 'The money picture across every event, without a spreadsheet.',
+        steps: [
+          'Record cost lines (venue, catering, decor…) on a client’s page or in Books.',
+          'Move each line planned → committed → paid as it happens — planned and committed lines are your budget.',
+          'Books shows collected, outstanding, costs and margin per event and overall.',
+          'Export Events, Payments or Expenses as CSV any time for your accountant.',
+        ],
+      },
+      {
         id: 'org-events', icon: 'Calendar', title: 'Event pages',
         intro: 'Give each celebration a beautiful public page.',
         steps: [
