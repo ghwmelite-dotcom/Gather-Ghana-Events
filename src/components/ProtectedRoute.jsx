@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { Spinner } from '../lib/icons.jsx'
+import ReadOnlyBanner from './ReadOnlyBanner.jsx'
 
 /** Gates portal routes. Shows a loader while the session resolves. */
 export default function ProtectedRoute({ children }) {
@@ -17,5 +18,11 @@ export default function ProtectedRoute({ children }) {
   if (!client) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
-  return children
+  const readOnly = location.pathname.startsWith('/org') && client.canWrite === false
+  return (
+    <>
+      {readOnly && <ReadOnlyBanner />}
+      {children}
+    </>
+  )
 }
