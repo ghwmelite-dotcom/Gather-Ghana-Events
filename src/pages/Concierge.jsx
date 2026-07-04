@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import Seo from '../components/Seo.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import Button from '../components/ui/Button.jsx'
@@ -24,7 +24,11 @@ const PRIORITIES = [
 
 export default function Concierge() {
   const { fmtGhs } = useCurrency()
-  const [form, setForm] = useState({ eventType: 'Wedding', guests: 150, budget: 50000, culture: 'Ghanaian', vibe: '' })
+  const [params] = useSearchParams()
+  const paramType = TYPES.includes(params.get('type')) ? params.get('type') : 'Wedding'
+  const paramBudget = Math.max(0, parseInt(params.get('budget')) || 50000)
+  const paramGuests = Math.max(1, parseInt(params.get('guests')) || 150)
+  const [form, setForm] = useState({ eventType: paramType, guests: paramGuests, budget: paramBudget, culture: 'Ghanaian', vibe: '' })
   const [priorities, setPriorities] = useState([])
   const togglePriority = (k) =>
     setPriorities((p) => (p.includes(k) ? p.filter((x) => x !== k) : p.length < 2 ? [...p, k] : p))
@@ -52,7 +56,7 @@ export default function Concierge() {
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
   const generate = async (e) => {
-    e.preventDefault()
+    e?.preventDefault()
     setLoading(true); setError(''); setPlan(null); setSent(false); setLeadError('')
     try {
       const res = await api.concept({ ...form, guests: Number(form.guests), budget: Number(form.budget), priorities })
@@ -64,13 +68,22 @@ export default function Concierge() {
     }
   }
 
+  const autoRan = useRef(false)
+  useEffect(() => {
+    if (autoRan.current) return
+    const hasBudget = parseInt(params.get('budget')) > 0
+    const hasGuests = parseInt(params.get('guests')) > 0
+    if (hasBudget && hasGuests) { autoRan.current = true; generate() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <>
-      <Seo title="Akwaaba AI Concierge" description="Describe your dream event and get an instant concept — budget breakdown, run-of-show, palette, and a vendor shortlist." />
+      <Seo title="Instant Event Package & Quote" description="Enter your budget and guest count for an instant, costed event package — budget breakdown, run-of-show, palette, and a vendor shortlist in seconds." />
       <PageHeader
-        eyebrow="Akwaaba · AI Concierge"
-        title={<>Your event, <span className="italic text-champagne-light">imagined</span> in seconds</>}
-        subtitle="Tell us a little, and we'll sketch a concept — budget, timeline, palette, and vendors — to build from."
+        eyebrow="Instant Package & Quote"
+        title={<>Your event, <span className="italic text-champagne-light">costed</span> in 60 seconds</>}
+        subtitle="Tell us your budget and guest count — we'll build a full package instantly: budget breakdown, run-of-show, palette, and a vendor shortlist."
         image={img.celebrations.src}
       />
 
