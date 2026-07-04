@@ -5,10 +5,11 @@
 import { ok, readJson } from '../../_lib/respond.js'
 import { clampStr } from '../../_lib/util.js'
 import { complete, isConfigured } from '../../_lib/ai.js'
+import { reweightSplit, labelToKeys, vendorCategoriesForKey, packageSummary } from '../../_lib/packages.js'
 
 // Budget splits by event type (percentages).
 const SPLITS = {
-  Wedding: [['Venue & catering', 45], ['Décor & florals', 20], ['Photography & film', 15], ['Music & entertainment', 10], ['Attire & beauty', 10]],
+  Wedding: [['Venue & catering', 45], ['Décor, florals & interior styling', 20], ['Photography & film', 15], ['Music & entertainment', 10], ['Attire & beauty', 10]],
   Birthday: [['Venue & catering', 45], ['Décor & theme', 25], ['Entertainment', 15], ['Photography & favours', 15]],
   Corporate: [['Venue & production (AV)', 40], ['Catering', 25], ['Stage, lighting & décor', 20], ['Photography & content', 15]],
   Other: [['Venue & catering', 45], ['Décor', 25], ['Entertainment', 15], ['Photography', 15]],
@@ -48,11 +49,46 @@ export async function onRequestPost({ request, env }) {
   const vibe = clampStr(body.vibe, 200)
   const culture = clampStr(body.culture, 80)
 
-  const split = SPLITS[type].map(([label, pct]) => ({ label, pct, amount: Math.round((budget * pct) / 100) }))
+  const priorities = Array.isArray(body.priorities) ? body.priorities.slice(0, 2) : []
+
+  // Base split → reweight toward priorities → recompute amounts.
+  const baseSplit = SPLITS[type].map(([label, pct]) => ({ label, pct }))
+  const reweighted = reweightSplit(baseSplit, priorities)
+  const split = reweighted.map((s) => ({ ...s, amount: Math.round((budget * s.pct) / 100) }))
+
   const perGuest = guests > 0 ? Math.round(budget / guests) : 0
   const timeline = TIMELINE[type].map(([time, title]) => ({ time, title }))
   const vendors = VENDORS[type]
   const palette = pickPalette(vibe)
+
+  // Attach up to 3 real, budget-fitting marketplace vendors per budget line.
+  for (const line of split) {
+    const cats = [...new Set(labelToKeys(line.label).flatMap(vendorCategoriesForKey))]
+    if (!cats.length) { line.suggestions = []; continue }
+    const placeholders = cats.map(() => '?').join(',')
+    const cap = line.amount * 100 // pesewas
+    try {
+      const { results } = await env.DB
+        .prepare(
+          `SELECT slug, name, price_from FROM vendors
+           WHERE category IN (${placeholders}) AND (price_from <= ? OR price_from IS NULL)
+           ORDER BY verified DESC, rating DESC, price_from ASC LIMIT 3`
+        )
+        .bind(...cats, cap)
+        .all()
+      let rows = results
+      if (!rows.length) {
+        const fb = await env.DB
+          .prepare(`SELECT slug, name, price_from FROM vendors WHERE category IN (${placeholders}) ORDER BY price_from ASC LIMIT 3`)
+          .bind(...cats)
+          .all()
+        rows = fb.results
+      }
+      line.suggestions = rows.map((v) => ({ slug: v.slug, name: v.name, priceFrom: v.price_from }))
+    } catch {
+      line.suggestions = []
+    }
+  }
 
   // Deterministic concept (always present).
   let concept =
@@ -60,7 +96,6 @@ export async function onRequestPost({ request, env }) {
     `We'd anchor the day around warmth and detail — a considered palette, a clear run-of-show, and vendors matched to your vision.`
   let aiUsed = false
 
-  // Optional AI enrichment.
   if (isConfigured(env)) {
     const out = await complete(env, {
       system: 'You are an elegant Ghanaian event designer. Write 3 warm, concrete sentences describing a concept. No markdown, no lists.',
@@ -70,7 +105,13 @@ export async function onRequestPost({ request, env }) {
     if (out) { concept = out; aiUsed = true }
   }
 
+  const summary = packageSummary({ type, guests, budget, perGuest, priorities, split })
+
   return ok({
-    plan: { type, guests, budget, perGuest, concept, palette, vendors, timeline, budgetSplit: split, aiUsed },
+    plan: {
+      type, guests, budget, perGuest, priorities, concept, palette, vendors, timeline,
+      budgetSplit: split, summary, aiUsed,
+      contact: { whatsapp: env.ORGANIZER_WHATSAPP || null },
+    },
   })
 }
