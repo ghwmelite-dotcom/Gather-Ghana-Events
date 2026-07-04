@@ -7,10 +7,13 @@ import { Section, Container } from '../components/ui/Section.jsx'
 import { ArrowLeft, Spinner, Lock, Plus, CheckCircle } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { formatMoney } from '../lib/money.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 const BLANK = { name: '', category: 'catering', location: '', tagline: '', about: '', image: '', price_from: '', whatsapp: '' }
 
 export default function OrgVendors() {
+  const { client } = useAuth()
+  const canWrite = client?.canWrite !== false
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading')
   const [busy, setBusy] = useState(false)
@@ -85,9 +88,9 @@ export default function OrgVendors() {
                   <p className="text-ink/50 text-xs capitalize">{v.category}{v.location ? ` · ${v.location}` : ''} · from {formatMoney(v.price_from, v.currency)}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button aria-label={`${v.verified ? 'Unverify' : 'Verify'} ${v.name}`} disabled={busy} onClick={() => run(() => api.orgVendorAction({ action: 'verify', id: v.id, verified: !v.verified }))} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">{v.verified ? 'Unverify' : 'Verify'}</button>
-                  <button aria-label={`Edit ${v.name}`} disabled={busy} onClick={() => edit(v)} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">Edit</button>
-                  <button aria-label={`Delete ${v.name}`} disabled={busy} onClick={() => { if (confirm(`Delete ${v.name}?`)) run(() => api.orgVendorAction({ action: 'delete', id: v.id })) }} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Delete</button>
+                  <button aria-label={`${v.verified ? 'Unverify' : 'Verify'} ${v.name}`} disabled={busy || !canWrite} onClick={() => run(() => api.orgVendorAction({ action: 'verify', id: v.id, verified: !v.verified }))} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">{v.verified ? 'Unverify' : 'Verify'}</button>
+                  <button aria-label={`Edit ${v.name}`} disabled={busy || !canWrite} onClick={() => edit(v)} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">Edit</button>
+                  <button aria-label={`Delete ${v.name}`} disabled={busy || !canWrite} onClick={() => { if (confirm(`Delete ${v.name}?`)) run(() => api.orgVendorAction({ action: 'delete', id: v.id })) }} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Delete</button>
                 </div>
               </div>
             ))}
@@ -112,7 +115,7 @@ export default function OrgVendors() {
             </div>
             <Field label="About" value={form.about} onChange={set('about')} placeholder="Short description" />
             <div className="flex gap-2">
-              <Button disabled={!form.name || busy} onClick={save} variant="primary" size="sm">{editId ? 'Save' : <><Plus size={16} /> Add</>}</Button>
+              <Button disabled={!form.name || busy || !canWrite} onClick={save} variant="primary" size="sm">{editId ? 'Save' : <><Plus size={16} /> Add</>}</Button>
               {editId && <Button onClick={reset} variant="outline" size="sm">Cancel</Button>}
             </div>
           </div>

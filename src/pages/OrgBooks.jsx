@@ -7,6 +7,7 @@ import { Section, Container } from '../components/ui/Section.jsx'
 import { ArrowLeft, Spinner, Lock, Plus, CreditCard, Check, Clock, Calendar } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { formatMoney } from '../lib/money.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 const BLANK = { vendor_name: '', category: 'misc', description: '', amount: '', inquiryId: '', receipt_url: '' }
 const NEXT_STATUS = { planned: 'committed', committed: 'paid' }
@@ -29,6 +30,8 @@ function Stat({ Icon, label, value, accent }) {
 }
 
 export default function OrgBooks() {
+  const { client } = useAuth()
+  const canWrite = client?.canWrite !== false
   const [books, setBooks] = useState(null)
   const [exp, setExp] = useState(null)
   const [state, setState] = useState('loading')
@@ -167,11 +170,11 @@ export default function OrgBooks() {
                         <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusChip[e.status]}`}>{e.status}</span>
                         <div className="flex items-center gap-2">
                           {NEXT_STATUS[e.status] && (
-                            <button disabled={busy} onClick={() => run(() => api.orgExpenseAction({ action: 'set_status', id: e.id, status: NEXT_STATUS[e.status] }))}
+                            <button disabled={busy || !canWrite} onClick={() => run(() => api.orgExpenseAction({ action: 'set_status', id: e.id, status: NEXT_STATUS[e.status] }))}
                               className="text-xs rounded-full bg-plum text-cream px-3 py-1.5 disabled:opacity-50">Mark {NEXT_STATUS[e.status]}</button>
                           )}
-                          <button disabled={busy} onClick={() => edit(e)} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">Edit</button>
-                          <button disabled={busy} onClick={() => { if (confirm('Delete this expense?')) run(() => api.orgExpenseAction({ action: 'delete', id: e.id })) }}
+                          <button disabled={busy || !canWrite} onClick={() => edit(e)} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">Edit</button>
+                          <button disabled={busy || !canWrite} onClick={() => { if (confirm('Delete this expense?')) run(() => api.orgExpenseAction({ action: 'delete', id: e.id })) }}
                             className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Delete</button>
                         </div>
                       </li>
@@ -204,7 +207,7 @@ export default function OrgBooks() {
               <Field label="Description" value={form.description} onChange={set('description')} placeholder="Centerpieces & arch florals" />
               <Field label="Receipt URL" value={form.receipt_url} onChange={set('receipt_url')} placeholder="https://…" />
               <div className="flex gap-2">
-                <Button disabled={!form.amount || busy} onClick={save} variant="primary" size="sm">{editId ? 'Save' : <><Plus size={16} /> Add</>}</Button>
+                <Button disabled={!form.amount || busy || !canWrite} onClick={save} variant="primary" size="sm">{editId ? 'Save' : <><Plus size={16} /> Add</>}</Button>
                 {editId && <Button onClick={reset} variant="outline" size="sm">Cancel</Button>}
               </div>
               <p className="text-xs text-ink/45">Planned → committed → paid. Planned and committed lines are your budget; paid is money out the door.</p>

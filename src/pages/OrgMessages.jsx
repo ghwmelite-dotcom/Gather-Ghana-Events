@@ -5,6 +5,7 @@ import Button from '../components/ui/Button.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
 import { ArrowLeft, Spinner, Lock, Mail, CheckCircle } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
 const statusChip = {
@@ -15,6 +16,8 @@ const statusChip = {
 }
 
 export default function OrgMessages() {
+  const { client } = useAuth()
+  const canWrite = client?.canWrite !== false
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading')
   const [openId, setOpenId] = useState(null)
@@ -98,7 +101,7 @@ export default function OrgMessages() {
                       className="w-full rounded-xl border border-plum/15 bg-cream px-4 py-3 text-ink text-sm" />
                     {err && <p role="alert" className="text-terracotta text-sm mt-2">{err}</p>}
                     <div className="mt-3 flex items-center gap-3">
-                      <Button onClick={() => sendReply(m)} disabled={!reply.trim() || busy} variant="primary" size="sm"><Mail size={16} /> {busy ? 'Sending…' : 'Send reply'}</Button>
+                      <Button onClick={() => sendReply(m)} disabled={!reply.trim() || busy || !canWrite} variant="primary" size="sm"><Mail size={16} /> {busy ? 'Sending…' : 'Send reply'}</Button>
                       {m.status === 'replied' && <span className="text-kente text-xs inline-flex items-center gap-1"><CheckCircle size={13} /> Replied {fmtDate(m.replied_at)}</span>}
                     </div>
                   </div>

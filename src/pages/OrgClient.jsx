@@ -9,6 +9,7 @@ import {
 } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { formatMoney } from '../lib/money.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 const ghs = (whole) => 'GH₵ ' + Number(whole || 0).toLocaleString()
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
@@ -25,6 +26,8 @@ const expenseChip = {
 }
 
 export default function OrgClient() {
+  const { client } = useAuth()
+  const canWrite = client?.canWrite !== false
   const { id } = useParams()
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading')
@@ -84,7 +87,7 @@ export default function OrgClient() {
               </p>
             </div>
             <label className="text-sm text-cream/70">Status&nbsp;
-              <select value={inquiry.status} onChange={(e) => setStatus(e.target.value)} disabled={busy}
+              <select value={inquiry.status} onChange={(e) => setStatus(e.target.value)} disabled={busy || !canWrite}
                 className="bg-cream text-ink rounded-full px-4 py-1.5 text-sm">
                 {LEAD_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -124,12 +127,12 @@ export default function OrgClient() {
                       )}
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {m.amount > 0 && m.escrow_status === 'none' && <button disabled={busy} onClick={() => milestone({ action: 'fund', id: m.id })} className="text-xs rounded-full bg-plum text-cream px-3 py-1.5 disabled:opacity-50">Mark funded</button>}
-                      {m.escrow_status === 'funded' && <button disabled={busy} onClick={() => milestone({ action: 'request_release', id: m.id })} className="text-xs rounded-full bg-terracotta text-cream px-3 py-1.5 disabled:opacity-50">Request release</button>}
+                      {m.amount > 0 && m.escrow_status === 'none' && <button disabled={busy || !canWrite} onClick={() => milestone({ action: 'fund', id: m.id })} className="text-xs rounded-full bg-plum text-cream px-3 py-1.5 disabled:opacity-50">Mark funded</button>}
+                      {m.escrow_status === 'funded' && <button disabled={busy || !canWrite} onClick={() => milestone({ action: 'request_release', id: m.id })} className="text-xs rounded-full bg-terracotta text-cream px-3 py-1.5 disabled:opacity-50">Request release</button>}
                       {m.escrow_status === 'release_requested' && <span className="text-xs text-terracotta py-1.5">Awaiting client approval</span>}
                       {m.escrow_status === 'released' && <span className="text-xs text-kente py-1.5 inline-flex items-center gap-1"><CheckCircle size={13} /> Released</span>}
-                      {m.status !== 'done' && <button disabled={busy} onClick={() => milestone({ action: 'upsert', id: m.id, inquiryId: id, title: m.title, description: m.description, due_date: m.due_date, status: 'done', amount: m.amount / 100, sort: m.sort })} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">Mark done</button>}
-                      <button disabled={busy} onClick={() => milestone({ action: 'delete', id: m.id })} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50 ml-auto">Delete</button>
+                      {m.status !== 'done' && <button disabled={busy || !canWrite} onClick={() => milestone({ action: 'upsert', id: m.id, inquiryId: id, title: m.title, description: m.description, due_date: m.due_date, status: 'done', amount: m.amount / 100, sort: m.sort })} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">Mark done</button>}
+                      <button disabled={busy || !canWrite} onClick={() => milestone({ action: 'delete', id: m.id })} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50 ml-auto">Delete</button>
                     </div>
                   </li>
                 ))}
@@ -140,7 +143,7 @@ export default function OrgClient() {
                 <Field className="flex-1 min-w-[160px]" label="New milestone" value={add.title} onChange={(e) => setAdd({ ...add, title: e.target.value })} placeholder="Vendor confirmations" />
                 <Field label="Due" type="date" value={add.due_date} onChange={(e) => setAdd({ ...add, due_date: e.target.value })} />
                 <Field label="Amount (GH₵)" type="number" value={add.amount} onChange={(e) => setAdd({ ...add, amount: e.target.value })} />
-                <Button disabled={!add.title || busy} onClick={() => milestone({ action: 'upsert', inquiryId: id, title: add.title, due_date: add.due_date, amount: add.amount, status: 'upcoming' }).then(() => setAdd({ title: '', due_date: '', amount: '' }))} variant="primary" size="sm"><Plus size={16} /> Add</Button>
+                <Button disabled={!add.title || busy || !canWrite} onClick={() => milestone({ action: 'upsert', inquiryId: id, title: add.title, due_date: add.due_date, amount: add.amount, status: 'upcoming' }).then(() => setAdd({ title: '', due_date: '', amount: '' }))} variant="primary" size="sm"><Plus size={16} /> Add</Button>
               </div>
             </div>
 
@@ -154,7 +157,7 @@ export default function OrgClient() {
                 <ul className="space-y-2">
                   {tasks.map((t) => (
                     <li key={t.id} className="flex items-center gap-3 rounded-2xl border border-plum/8 p-3">
-                      <button aria-label={`Set "${t.title}" to ${TASK_NEXT[t.status].replace('_', ' ')}`} disabled={busy}
+                      <button aria-label={`Set "${t.title}" to ${TASK_NEXT[t.status].replace('_', ' ')}`} disabled={busy || !canWrite}
                         onClick={() => run(() => api.orgTaskAction({ action: 'set_status', id: t.id, status: TASK_NEXT[t.status] }))}
                         className={`shrink-0 size-7 rounded-full border grid place-items-center disabled:opacity-50 ${t.status === 'done' ? 'bg-kente text-cream border-kente' : t.status === 'in_progress' ? 'border-terracotta text-terracotta' : 'border-plum/25 text-plum/30 hover:border-plum/50'}`}>
                         {t.status === 'in_progress' ? <Clock size={13} /> : <Check size={13} />}
@@ -163,7 +166,7 @@ export default function OrgClient() {
                         <p className={`text-sm font-medium truncate ${t.status === 'done' ? 'text-ink/40 line-through' : 'text-plum'}`}>{t.title}</p>
                         <p className="text-xs text-ink/45">{t.assignee_email || 'Unassigned'}{t.due_date ? ` · due ${fmtDate(t.due_date)}` : ''}</p>
                       </div>
-                      <button aria-label={`Delete ${t.title}`} disabled={busy}
+                      <button aria-label={`Delete ${t.title}`} disabled={busy || !canWrite}
                         onClick={() => { if (confirm(`Delete "${t.title}"?`)) run(() => api.orgTaskAction({ action: 'delete', id: t.id })) }}
                         className="text-xs rounded-full border border-terracotta/30 px-3 py-1 text-terracotta disabled:opacity-50">Delete</button>
                     </li>
@@ -180,7 +183,7 @@ export default function OrgClient() {
                     {team.map((m) => <option key={m.email} value={m.email}>{m.name || m.email}</option>)}
                   </select>
                 </label>
-                <Button disabled={!task.title || busy} onClick={() => run(() => api.orgTaskAction({ action: 'create', inquiryId: id, ...task })).then(() => setTask({ title: '', due_date: '', assignee_email: '' }))} variant="primary" size="sm"><Plus size={16} /> Add</Button>
+                <Button disabled={!task.title || busy || !canWrite} onClick={() => run(() => api.orgTaskAction({ action: 'create', inquiryId: id, ...task })).then(() => setTask({ title: '', due_date: '', assignee_email: '' }))} variant="primary" size="sm"><Plus size={16} /> Add</Button>
               </div>
             </div>
 
@@ -202,10 +205,10 @@ export default function OrgClient() {
                       <span className="font-display text-plum tnum text-sm">{formatMoney(e.amount, e.currency)}</span>
                       <span className={`text-[11px] px-2 py-0.5 rounded-full ${expenseChip[e.status]}`}>{e.status}</span>
                       {EXPENSE_NEXT[e.status] && (
-                        <button disabled={busy} onClick={() => run(() => api.orgExpenseAction({ action: 'set_status', id: e.id, status: EXPENSE_NEXT[e.status] }))}
+                        <button disabled={busy || !canWrite} onClick={() => run(() => api.orgExpenseAction({ action: 'set_status', id: e.id, status: EXPENSE_NEXT[e.status] }))}
                           className="text-xs rounded-full bg-plum text-cream px-3 py-1 disabled:opacity-50">Mark {EXPENSE_NEXT[e.status]}</button>
                       )}
-                      <button aria-label="Delete expense" disabled={busy}
+                      <button aria-label="Delete expense" disabled={busy || !canWrite}
                         onClick={() => { if (confirm('Delete this expense?')) run(() => api.orgExpenseAction({ action: 'delete', id: e.id })) }}
                         className="text-xs rounded-full border border-terracotta/30 px-3 py-1 text-terracotta disabled:opacity-50">Delete</button>
                     </li>
@@ -221,7 +224,7 @@ export default function OrgClient() {
                   </select>
                 </label>
                 <Field className="flex-1 min-w-[140px]" label="Vendor / payee" value={cost.vendor_name} onChange={(e) => setCost({ ...cost, vendor_name: e.target.value })} placeholder="Bloom & Co." />
-                <Button disabled={!cost.amount || busy} onClick={() => run(() => api.orgExpenseAction({ action: 'create', inquiryId: id, ...cost })).then(() => setCost({ amount: '', category: 'misc', vendor_name: '' }))} variant="primary" size="sm"><Plus size={16} /> Add</Button>
+                <Button disabled={!cost.amount || busy || !canWrite} onClick={() => run(() => api.orgExpenseAction({ action: 'create', inquiryId: id, ...cost })).then(() => setCost({ amount: '', category: 'misc', vendor_name: '' }))} variant="primary" size="sm"><Plus size={16} /> Add</Button>
               </div>
             </div>
           </div>
@@ -262,7 +265,7 @@ export default function OrgClient() {
               <div className="flex flex-wrap items-end gap-2 pt-3 border-t border-plum/10">
                 <Field className="flex-1 min-w-[140px]" label="New proposal" value={prop.title} onChange={(e) => setProp({ ...prop, title: e.target.value })} placeholder="Full planning & styling" />
                 <Field label="GH₵" type="number" value={prop.amount} onChange={(e) => setProp({ ...prop, amount: e.target.value })} />
-                <Button disabled={!prop.title || busy} onClick={() => run(() => api.createProposal({ inquiryId: id, title: prop.title, amount: prop.amount })).then(() => setProp({ title: '', amount: '' }))} variant="primary" size="sm">Send</Button>
+                <Button disabled={!prop.title || busy || !canWrite} onClick={() => run(() => api.createProposal({ inquiryId: id, title: prop.title, amount: prop.amount })).then(() => setProp({ title: '', amount: '' }))} variant="primary" size="sm">Send</Button>
               </div>
             </div>
 
@@ -285,7 +288,7 @@ export default function OrgClient() {
               <div className="mt-4 pt-4 border-t border-plum/10 flex items-end gap-2">
                 <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={2} aria-label={`Message ${inquiry.name}`} placeholder="Write a message…"
                   className="flex-1 rounded-xl border border-plum/15 bg-cream px-4 py-2.5 text-ink text-sm resize-none" />
-                <Button disabled={!msg.trim() || busy} variant="primary" size="sm"
+                <Button disabled={!msg.trim() || busy || !canWrite} variant="primary" size="sm"
                   onClick={async () => { setBusy(true); try { await api.orgThreadSend({ inquiryId: id, body: msg }); setMsg(''); await loadThread() } finally { setBusy(false) } }}>
                   Send
                 </Button>

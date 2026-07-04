@@ -22,7 +22,7 @@ function Stat({ Icon, label, value }) {
   )
 }
 
-function CreateEvent({ onCreated }) {
+function CreateEvent({ onCreated, canWrite }) {
   const [f, setF] = useState({ title: '', host_names: '', event_type: 'Wedding', event_date: '', venue: '', location: '', goal: '' })
   const [busy, setBusy] = useState(false)
   const [made, setMade] = useState(null)
@@ -58,12 +58,12 @@ function CreateEvent({ onCreated }) {
         <Field label="Venue" value={f.venue} onChange={set('venue')} />
         <Field label="Location" value={f.location} onChange={set('location')} />
       </div>
-      <Button type="submit" variant="primary" size="sm" loading={busy} className="w-full">Create page</Button>
+      <Button type="submit" variant="primary" size="sm" loading={busy} disabled={!canWrite} className="w-full">Create page</Button>
     </form>
   )
 }
 
-function LeadRow({ lead, onProposal }) {
+function LeadRow({ lead, onProposal, canWrite }) {
   const [open, setOpen] = useState(false)
   const [p, setP] = useState({ title: '', amount: '' })
   const [sent, setSent] = useState(false)
@@ -94,7 +94,7 @@ function LeadRow({ lead, onProposal }) {
           <div className="flex flex-wrap items-end gap-3">
             <Field className="flex-1 min-w-[180px]" label="Proposal title" value={p.title} onChange={(e) => setP({ ...p, title: e.target.value })} placeholder="Full planning & styling" />
             <Field label="Amount (GH₵)" type="number" value={p.amount} onChange={(e) => setP({ ...p, amount: e.target.value })} />
-            <Button onClick={send} variant="primary" size="sm" disabled={!p.title}>Send</Button>
+            <Button onClick={send} variant="primary" size="sm" disabled={!p.title || !canWrite}>Send</Button>
           </div>
         </td></tr>
       )}
@@ -104,6 +104,7 @@ function LeadRow({ lead, onProposal }) {
 
 export default function OrgDashboard() {
   const { client } = useAuth()
+  const canWrite = client?.canWrite !== false
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading') // loading | ok | forbidden | error
 
@@ -173,7 +174,7 @@ export default function OrgDashboard() {
                     <thead><tr className="text-left text-ink/45 text-xs uppercase tracking-wider">
                       <th className="pb-2 pr-4 font-medium">Client</th><th className="pb-2 pr-4 font-medium">Type</th><th className="pb-2 pr-4 font-medium">Date</th><th className="pb-2 pr-4 font-medium">Est.</th><th className="pb-2 pr-4 font-medium">Status</th><th></th>
                     </tr></thead>
-                    <tbody>{data.leads.map((l) => <LeadRow key={l.id} lead={l} onProposal={onProposal} />)}</tbody>
+                    <tbody>{data.leads.map((l) => <LeadRow key={l.id} lead={l} onProposal={onProposal} canWrite={canWrite} />)}</tbody>
                   </table>
                 )}
               </div>
@@ -195,7 +196,7 @@ export default function OrgDashboard() {
             </div>
 
             <div className="space-y-8">
-              <CreateEvent onCreated={load} />
+              <CreateEvent onCreated={load} canWrite={canWrite} />
               <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
                 <h2 className="font-display text-plum text-xl mb-4">Recent messages</h2>
                 {data.messages.length === 0 ? <p className="text-ink/55 text-sm">No messages.</p> : (

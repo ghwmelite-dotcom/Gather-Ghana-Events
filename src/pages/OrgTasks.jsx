@@ -26,6 +26,7 @@ const isOverdue = (t) => t.due_date && t.status !== 'done' && new Date(t.due_dat
 
 export default function OrgTasks() {
   const { client } = useAuth()
+  const canWrite = client?.canWrite !== false
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading')
   const [busy, setBusy] = useState(false)
@@ -108,7 +109,7 @@ export default function OrgTasks() {
 
             {tasks.length === 0 ? <p className="text-ink/55 text-sm">No tasks here — add one.</p> : tasks.map((t) => (
               <div key={t.id} className="rounded-2xl bg-cream-deep border border-plum/8 p-4 flex flex-wrap items-center gap-3">
-                <button aria-label={`Set "${t.title}" to ${NEXT_STATUS[t.status].replace('_', ' ')}`} disabled={busy}
+                <button aria-label={`Set "${t.title}" to ${NEXT_STATUS[t.status].replace('_', ' ')}`} disabled={busy || !canWrite}
                   onClick={() => run(() => api.orgTaskAction({ action: 'set_status', id: t.id, status: NEXT_STATUS[t.status] }))}
                   className={`shrink-0 size-8 rounded-full border grid place-items-center transition-colors disabled:opacity-50 ${t.status === 'done' ? 'bg-kente text-cream border-kente' : t.status === 'in_progress' ? 'border-terracotta text-terracotta' : 'border-plum/25 text-plum/30 hover:border-plum/50'}`}>
                   {t.status === 'done' ? <Check size={15} /> : t.status === 'in_progress' ? <Clock size={15} /> : <Check size={15} />}
@@ -127,7 +128,7 @@ export default function OrgTasks() {
                     {t.client_name || 'Event'} <ArrowRight size={12} />
                   </Link>
                 )}
-                <button aria-label={`Delete ${t.title}`} disabled={busy}
+                <button aria-label={`Delete ${t.title}`} disabled={busy || !canWrite}
                   onClick={() => { if (confirm(`Delete "${t.title}"?`)) run(() => api.orgTaskAction({ action: 'delete', id: t.id })) }}
                   className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Delete</button>
               </div>
@@ -156,7 +157,7 @@ export default function OrgTasks() {
               </select>
             </label>
             <Field label="Notes" value={form.notes} onChange={set('notes')} placeholder="Anything the assignee should know" />
-            <Button disabled={!form.title || busy} onClick={add} variant="primary" size="sm"><Plus size={16} /> Add task</Button>
+            <Button disabled={!form.title || busy || !canWrite} onClick={add} variant="primary" size="sm"><Plus size={16} /> Add task</Button>
           </div>
         </Container>
       </Section>
