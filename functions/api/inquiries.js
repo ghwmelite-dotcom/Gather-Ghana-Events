@@ -22,12 +22,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const estimate = Math.max(0, parseInt(body.estimate) || 0)
   const deposit = Math.max(0, parseInt(body.deposit) || 0)
 
-  // Validate.
+  // Validate — name + email are required; phone/date optional (package-builder leads).
   const errors = {}
   if (!name) errors.name = 'Name is required'
   if (!isEmail(email)) errors.email = 'Valid email is required'
-  if (!phone) errors.phone = 'Phone is required'
-  if (!date) errors.date = 'Event date is required'
   if (Object.keys(errors).length) return fail('Please check the form', 422, { fields: errors })
 
   const db = env.DB
