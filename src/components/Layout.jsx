@@ -9,12 +9,13 @@ const navItems = [
   { to: '/', label: 'Home' },
   { to: '/services', label: 'Services' },
   { to: '/vendors', label: 'Vendors' },
+  { to: '/concierge', label: 'Instant Quote' },
   { to: '/portfolio', label: 'Portfolio' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
 ]
 
-const WHATSAPP_URL = 'https://wa.me/233000000000'
+const WHATSAPP_URL = 'https://wa.me/233505982361'
 const TIKTOK_URL = 'https://www.tiktok.com/@gatherghana_events'
 const EMAIL = 'hello@gatherghana.events'
 
@@ -207,7 +208,7 @@ function Footer() {
                 </li>
               ))}
               <li><Link to="/playbooks" className="link-underline">Playbooks</Link></li>
-              <li><Link to="/concierge" className="link-underline">AI Concierge</Link></li>
+              <li><Link to="/concierge" className="link-underline">Instant Quote</Link></li>
               <li><Link to="/guide" className="link-underline">Guide</Link></li>
               <li><Link to="/book" className="link-underline">Start Planning</Link></li>
               <li><Link to="/portal" className="link-underline">Client Portal</Link></li>
