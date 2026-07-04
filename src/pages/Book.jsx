@@ -57,6 +57,16 @@ export default function Book() {
   const [status, setStatus] = useState('idle') // idle | submitting | redirecting | done
   const [serverError, setServerError] = useState('')
   const [params] = useSearchParams()
+  const vendorSlug = params.get('vendor')
+  const [requestedVendor, setRequestedVendor] = useState('')
+  useEffect(() => {
+    if (!vendorSlug) return
+    let cancelled = false
+    api.vendor(vendorSlug)
+      .then((r) => { if (!cancelled) setRequestedVendor(r?.vendor?.name || '') })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [vendorSlug])
   const { fmtGhs, isForeign, currency } = useCurrency()
   const paymentResult = params.get('payment') // success | failed | error (from Paystack callback)
 
@@ -86,12 +96,15 @@ export default function Book() {
 
     setStatus('submitting')
     setServerError('')
+    const vendorNote = requestedVendor ? `Requested vendor: ${requestedVendor} (${vendorSlug})` : ''
+    const notes = [vendorNote, form.notes].filter(Boolean).join('\n\n')
     const payload = {
       type,
       guests: Number(guests) || 0,
       estimate: Math.round(total),
       deposit: Math.round(deposit),
       ...form,
+      notes,
     }
 
     try {
@@ -169,6 +182,11 @@ export default function Book() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} noValidate className="space-y-7">
+                {requestedVendor && (
+                  <div className="rounded-xl bg-champagne-pale border border-champagne/40 px-4 py-3 text-sm text-plum">
+                    Requesting: <span className="font-medium">{requestedVendor}</span> — we&apos;ll coordinate them for your event.
+                  </div>
+                )}
                 {(paymentResult === 'failed' || paymentResult === 'error') && (
                   <div role="alert" className="rounded-xl bg-terracotta/10 border border-terracotta/30 px-4 py-3 text-sm text-terracotta">
                     Your payment didn&apos;t go through. No charge was made — you can try again
