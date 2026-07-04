@@ -53,7 +53,7 @@ export default function Concierge() {
 
   const generate = async (e) => {
     e.preventDefault()
-    setLoading(true); setError(''); setPlan(null)
+    setLoading(true); setError(''); setPlan(null); setSent(false); setLeadError('')
     try {
       const res = await api.concept({ ...form, guests: Number(form.guests), budget: Number(form.budget), priorities })
       setPlan(res.plan)
