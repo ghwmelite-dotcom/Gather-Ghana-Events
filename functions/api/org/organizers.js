@@ -5,7 +5,7 @@
 
 import { ok, fail, readJson } from '../../_lib/respond.js'
 import { uid, now, clampStr, isEmail } from '../../_lib/util.js'
-import { currentOrganizer, isOrganizerEmail, issueMagicLink } from '../../_lib/auth.js'
+import { currentOrganizer, currentEditor, isOrganizerEmail, issueMagicLink, roleOf } from '../../_lib/auth.js'
 import { sendMagicLink } from '../../_lib/email.js'
 import { logActivity } from '../../_lib/activity.js'
 
@@ -19,11 +19,12 @@ export async function onRequestGet({ request, env }) {
   // Members = anyone with the DB role OR a config-email organizer who has a client row (has signed in).
   const where = cfg.length ? `is_organizer = 1 OR email IN (${cfg.map(() => '?').join(',')})` : 'is_organizer = 1'
   const { results } = await env.DB
-    .prepare(`SELECT id, email, name, is_organizer FROM clients WHERE ${where} ORDER BY name`)
+    .prepare(`SELECT id, email, name, is_organizer, role FROM clients WHERE ${where} ORDER BY name`)
     .bind(...cfg)
     .all()
   const members = results.map((c) => ({
     clientId: c.id, email: c.email, name: c.name,
+    role: roleOf(env, c),
     source: isOrganizerEmail(env, c.email) ? 'config' : 'db',
     isSelf: c.id === org.id,
   }))
@@ -31,8 +32,8 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPost({ request, env }) {
-  const org = await currentOrganizer(request, env)
-  if (!org) return fail('Organizer access required', 403)
+  const org = await currentEditor(request, env)
+  if (!org) return fail("Read-only access — this action isn't available.", 403)
   const db = env.DB
   const body = await readJson(request)
   const action = body.action
@@ -45,7 +46,8 @@ export async function onRequestPost({ request, env }) {
         ? await db.prepare('SELECT id, email FROM clients WHERE email = ?').bind(email).first()
         : null
     if (!client) return fail('No client with that email — use Invite instead', 404)
-    await db.prepare('UPDATE clients SET is_organizer = 1 WHERE id = ?').bind(client.id).run()
+    const role = body.role === 'viewer' ? 'viewer' : 'admin'
+    await db.prepare('UPDATE clients SET is_organizer = 1, role = ? WHERE id = ?').bind(role, client.id).run()
     await logActivity(db, { actor: org.email, action: 'team.grant', entityType: 'client', entityId: client.id, detail: `Granted organizer access to ${client.email}` })
     return ok({ clientId: client.id })
   }
@@ -65,13 +67,14 @@ export async function onRequestPost({ request, env }) {
     const email = clampStr(body.email, 160).toLowerCase()
     if (!isEmail(email)) return fail('Enter a valid email address', 422)
     const name = clampStr(body.name, 120) || email.split('@')[0]
+    const role = body.role === 'viewer' ? 'viewer' : 'admin'
     let client = await db.prepare('SELECT id FROM clients WHERE email = ?').bind(email).first()
     if (client) {
-      await db.prepare('UPDATE clients SET is_organizer = 1 WHERE id = ?').bind(client.id).run()
+      await db.prepare('UPDATE clients SET is_organizer = 1, role = ? WHERE id = ?').bind(role, client.id).run()
     } else {
       const id = uid('cl_')
-      await db.prepare('INSERT INTO clients (id, email, name, is_organizer, created_at) VALUES (?,?,?,1,?)')
-        .bind(id, email, name, now()).run()
+      await db.prepare('INSERT INTO clients (id, email, name, is_organizer, role, created_at) VALUES (?,?,?,1,?,?)')
+        .bind(id, email, name, role, now()).run()
       client = { id }
     }
     const site = env.SITE_URL || new URL(request.url).origin
@@ -79,6 +82,18 @@ export async function onRequestPost({ request, env }) {
     const sent = await sendMagicLink(env, { to: email, link, name })
     await logActivity(db, { actor: org.email, action: 'team.invite', entityType: 'client', entityId: client.id, detail: `Invited ${email} to the team` })
     return ok({ clientId: client.id, invited: true, emailed: sent.sent })
+  }
+
+  if (action === 'setRole') {
+    const id = clampStr(body.clientId, 60)
+    const role = body.role === 'viewer' ? 'viewer' : 'admin'
+    const client = await db.prepare('SELECT id, email FROM clients WHERE id = ?').bind(id).first()
+    if (!client) return fail('Client not found', 404)
+    if (client.id === org.id) return fail('You cannot change your own role', 409)
+    if (isOrganizerEmail(env, client.email)) return fail('This organizer is set in config and cannot be changed here', 409)
+    await db.prepare('UPDATE clients SET role = ? WHERE id = ?').bind(role, id).run()
+    await logActivity(db, { actor: org.email, action: 'team.setRole', entityType: 'client', entityId: id, detail: `Set ${client.email} to ${role}` })
+    return ok({ clientId: id, role })
   }
 
   return fail('Unknown action', 422)
