@@ -71,7 +71,7 @@ export async function onRequestPost({ request, env }) {
       const { results } = await env.DB
         .prepare(
           `SELECT slug, name, price_from FROM vendors
-           WHERE category IN (${placeholders}) AND (price_from <= ? OR price_from IS NULL)
+           WHERE category IN (${placeholders}) AND price_from > 0 AND price_from <= ?
            ORDER BY verified DESC, rating DESC, price_from ASC LIMIT 3`
         )
         .bind(...cats, cap)
@@ -79,7 +79,7 @@ export async function onRequestPost({ request, env }) {
       let rows = results
       if (!rows.length) {
         const fb = await env.DB
-          .prepare(`SELECT slug, name, price_from FROM vendors WHERE category IN (${placeholders}) ORDER BY price_from ASC LIMIT 3`)
+          .prepare(`SELECT slug, name, price_from FROM vendors WHERE category IN (${placeholders}) ORDER BY verified DESC, rating DESC, price_from ASC LIMIT 3`)
           .bind(...cats)
           .all()
         rows = fb.results
