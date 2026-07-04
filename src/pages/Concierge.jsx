@@ -6,7 +6,7 @@ import Button from '../components/ui/Button.jsx'
 import Field from '../components/ui/Field.jsx'
 import Reveal from '../components/ui/Reveal.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
-import { Sparkles, ArrowRight, Spinner } from '../lib/icons.jsx'
+import { Sparkles, ArrowRight, Spinner, WhatsApp, CheckCircle } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { useCurrency } from '../lib/CurrencyContext.jsx'
 import { img } from '../lib/images.js'
@@ -31,6 +31,23 @@ export default function Concierge() {
   const [plan, setPlan] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const [lead, setLead] = useState({ name: '', email: '', phone: '', note: '' })
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [leadError, setLeadError] = useState('')
+
+  const sendPlan = async () => {
+    if (!lead.name.trim() || !lead.email.trim()) { setLeadError('Please add your name and email.'); return }
+    setSending(true); setLeadError('')
+    try {
+      const notes = lead.note.trim() ? `${plan.summary}\n\nNote: ${lead.note.trim()}` : plan.summary
+      await api.createInquiry({ type: plan.type, guests: plan.guests, estimate: plan.budget, deposit: 0, name: lead.name, email: lead.email, phone: lead.phone, notes })
+      setSent(true)
+    } catch (e2) {
+      setLeadError(e2 instanceof ApiError ? e2.message : 'Could not send. Please try again.')
+    } finally { setSending(false) }
+  }
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
@@ -154,9 +171,33 @@ export default function Concierge() {
                   </Reveal>
                 </div>
 
-                <div className="rounded-3xl bg-champagne-pale p-7 text-center">
-                  <p className="font-display text-plum text-xl">Love where this is going?</p>
-                  <Button to="/book" variant="primary" size="md" className="mt-4">Bring it to life <ArrowRight size={18} /></Button>
+                <div className="rounded-3xl bg-plum text-cream p-7">
+                  {sent ? (
+                    <div className="text-center py-2">
+                      <CheckCircle size={32} className="mx-auto text-champagne-light" />
+                      <p className="font-display text-2xl mt-3">Sent — medaase!</p>
+                      <p className="text-cream/70 text-sm mt-1">Our team has your package and will reach out shortly.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="font-display text-xl">Send this plan to our team</p>
+                      <p className="text-cream/65 text-sm mt-1">We&apos;ll tailor it and reach out — no commitment.</p>
+                      <div className="mt-5 space-y-3">
+                        <Field label="Your name" value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} />
+                        <Field label="Email" type="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} inputMode="email" />
+                        <Field label="Phone (optional)" type="tel" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} inputMode="tel" />
+                        <Field as="textarea" rows="2" label="Anything to add? (optional)" value={lead.note} onChange={(e) => setLead({ ...lead, note: e.target.value })} />
+                      </div>
+                      {leadError && <p role="alert" className="text-sm text-champagne-light mt-3">{leadError}</p>}
+                      <Button onClick={sendPlan} variant="gold" size="md" loading={sending} className="w-full mt-4">Send to our team <ArrowRight size={18} /></Button>
+                      {plan.contact?.whatsapp && (
+                        <a href={`https://wa.me/${plan.contact.whatsapp}?text=${encodeURIComponent(plan.summary)}`} target="_blank" rel="noopener noreferrer"
+                          className="mt-3 flex items-center justify-center gap-2 rounded-full border border-cream/25 py-3 text-sm hover:bg-cream/10 transition-colors">
+                          <WhatsApp size={18} /> Chat on WhatsApp
+                        </a>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             )}
