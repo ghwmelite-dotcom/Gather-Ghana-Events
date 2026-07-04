@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS clients (
   name         TEXT NOT NULL,
   phone        TEXT,
   is_organizer INTEGER NOT NULL DEFAULT 0,
+  role         TEXT NOT NULL DEFAULT 'admin',   -- 'admin' | 'viewer' (only meaningful when is_organizer = 1)
   created_at   INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
