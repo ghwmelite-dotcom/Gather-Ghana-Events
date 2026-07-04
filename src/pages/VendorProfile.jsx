@@ -6,7 +6,7 @@ import Field from '../components/ui/Field.jsx'
 import Img from '../components/ui/Img.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
 import { Stars } from './Vendors.jsx'
-import { CheckCircle, Spinner, WhatsApp, ArrowLeft, ArrowRight } from '../lib/icons.jsx'
+import { CheckCircle, Spinner, ArrowLeft, ArrowRight } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { useCurrency } from '../lib/CurrencyContext.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -129,16 +129,11 @@ export default function VendorProfile() {
             </div>
           </div>
 
-          {/* Contact / request */}
+          {/* Request via the organizer — no direct vendor contact */}
           <div className="rounded-3xl bg-plum text-cream p-7 lg:sticky lg:top-28">
             <h2 className="font-display text-2xl mb-2">Like what you see?</h2>
-            <p className="text-cream/65 text-sm leading-relaxed">Add {vendor.name} to your plan, or reach out directly.</p>
-            <Button to="/book" variant="gold" size="md" className="w-full mt-6">Request this vendor <ArrowRight size={18} /></Button>
-            {vendor.whatsapp && (
-              <a href={vendor.whatsapp} className="mt-3 flex items-center justify-center gap-2 rounded-full border border-cream/25 py-3 text-sm hover:bg-cream/10 transition-colors">
-                <WhatsApp size={18} /> Message on WhatsApp
-              </a>
-            )}
+            <p className="text-cream/65 text-sm leading-relaxed">Add {vendor.name} to your plan — our team coordinates everything for you.</p>
+            <Button to={`/book?vendor=${vendor.slug}`} variant="gold" size="md" className="w-full mt-6">Request this vendor <ArrowRight size={18} /></Button>
           </div>
         </Container>
       </Section>

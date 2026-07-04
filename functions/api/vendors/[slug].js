@@ -6,7 +6,7 @@ export async function onRequestGet({ params, env }) {
   const vendor = await env.DB
     .prepare(
       `SELECT id, slug, name, category, location, tagline, about, image, price_from,
-              currency, verified, rating, reviews_count, whatsapp
+              currency, verified, rating, reviews_count
        FROM vendors WHERE slug = ?`
     )
     .bind(params.slug)
