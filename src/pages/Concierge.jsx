@@ -13,10 +13,21 @@ import { img } from '../lib/images.js'
 
 const TYPES = ['Wedding', 'Birthday', 'Corporate', 'Other']
 const VENDOR_LABELS = { venue: 'Venues', catering: 'Catering', decor: 'Décor', photography: 'Photography', music: 'Music & DJs', makeup: 'Makeup' }
+const PRIORITIES = [
+  { key: 'venue', label: 'Venue' },
+  { key: 'catering', label: 'Catering' },
+  { key: 'decor', label: 'Décor & styling' },
+  { key: 'photography', label: 'Photography' },
+  { key: 'music', label: 'Music' },
+  { key: 'beauty', label: 'Beauty' },
+]
 
 export default function Concierge() {
   const { fmtGhs } = useCurrency()
   const [form, setForm] = useState({ eventType: 'Wedding', guests: 150, budget: 50000, culture: 'Ghanaian', vibe: '' })
+  const [priorities, setPriorities] = useState([])
+  const togglePriority = (k) =>
+    setPriorities((p) => (p.includes(k) ? p.filter((x) => x !== k) : p.length < 2 ? [...p, k] : p))
   const [plan, setPlan] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -27,7 +38,7 @@ export default function Concierge() {
     e.preventDefault()
     setLoading(true); setError(''); setPlan(null)
     try {
-      const res = await api.concept({ ...form, guests: Number(form.guests), budget: Number(form.budget) })
+      const res = await api.concept({ ...form, guests: Number(form.guests), budget: Number(form.budget), priorities })
       setPlan(res.plan)
     } catch (e2) {
       setError(e2 instanceof ApiError ? e2.message : 'Something went wrong. Please try again.')
@@ -65,6 +76,16 @@ export default function Concierge() {
             </div>
             <Field label="Culture / tradition" value={form.culture} onChange={set('culture')} placeholder="e.g. Ghanaian, Yoruba…" />
             <Field as="textarea" rows="3" label="The vibe you're dreaming of" value={form.vibe} onChange={set('vibe')} placeholder="Romantic garden, gold & plum, live highlife band…" />
+            <div>
+              <label className="block text-sm text-ink/60 mb-3">Top priorities <span className="text-ink/40">(pick up to 2)</span></label>
+              <div className="flex flex-wrap gap-2">
+                {PRIORITIES.map((p) => (
+                  <button key={p.key} type="button" onClick={() => togglePriority(p.key)}
+                    aria-pressed={priorities.includes(p.key)}
+                    className={`px-3 py-2 rounded-full border text-sm transition-all ${priorities.includes(p.key) ? 'border-plum bg-plum text-cream' : 'border-plum/20 text-ink/70 hover:border-plum/50'}`}>{p.label}</button>
+                ))}
+              </div>
+            </div>
             {error && <p role="alert" className="text-sm text-terracotta">{error}</p>}
             <Button type="submit" variant="primary" size="md" loading={loading} className="w-full"><Sparkles size={18} /> {loading ? 'Imagining…' : 'Generate my concept'}</Button>
           </form>
@@ -94,11 +115,21 @@ export default function Concierge() {
                     <h2 className="font-display text-plum text-2xl">Budget breakdown</h2>
                     <span className="text-sm text-ink/55 tnum">~{fmtGhs(plan.perGuest)}/guest</span>
                   </div>
+                  <p className="text-xs text-ink/45 mb-4">Indicative — your planner confirms final pricing.</p>
                   <ul className="space-y-3">
                     {plan.budgetSplit.map((b) => (
                       <li key={b.label}>
                         <div className="flex justify-between text-sm mb-1"><span className="text-ink/70">{b.label}</span><span className="text-plum tnum">{fmtGhs(b.amount)}</span></div>
                         <div className="h-2 rounded-full bg-plum/10 overflow-hidden"><div className="h-full bg-champagne rounded-full" style={{ width: `${b.pct}%` }} /></div>
+                        {b.suggestions?.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {b.suggestions.map((s) => (
+                              <Link key={s.slug} to={`/vendors/${s.slug}`} className="text-xs px-2.5 py-1 rounded-full bg-cream border border-plum/15 text-plum hover:bg-plum/5 transition-colors">
+                                {s.name}{s.priceFrom ? ` · from ${fmtGhs(s.priceFrom / 100)}` : ''}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
