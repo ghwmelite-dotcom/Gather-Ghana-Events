@@ -5,6 +5,7 @@ import Reveal from '../components/ui/Reveal.jsx'
 import { Section, Container, Eyebrow } from '../components/ui/Section.jsx'
 import Testimonials from '../components/sections/Testimonials.jsx'
 import RootedInGhana from '../components/sections/RootedInGhana.jsx'
+import PackageTeaser from '../components/sections/PackageTeaser.jsx'
 import { ArrowRight, Heart, Sparkles, Building } from '../lib/icons.jsx'
 import { img } from '../lib/images.js'
 
@@ -42,6 +43,9 @@ function Hero() {
         <div className="rise rise-4 mt-10 flex flex-wrap items-center gap-4">
           <Button to="/book" variant="gold" size="lg">
             Start Planning Your Event <ArrowRight size={18} />
+          </Button>
+          <Button to="/concierge" variant="ghostLight" size="lg">
+            Build My Package <ArrowRight size={18} />
           </Button>
           <Button to="/portfolio" variant="ghostLight" size="lg">
             View Our Work
@@ -178,6 +182,7 @@ export default function Home() {
     <>
       <Seo />
       <Hero />
+      <PackageTeaser />
       <Intro />
       <ServicesPreview />
       <Stats />
