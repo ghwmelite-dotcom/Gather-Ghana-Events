@@ -85,6 +85,18 @@ export function isOrganizer(env, client) {
   return isOrganizerEmail(env, client.email) || client.is_organizer === 1
 }
 
+/** Effective role for an organizer: config admins are always 'admin'; else the DB role. */
+export function roleOf(env, client) {
+  if (!client) return 'viewer'
+  if (isOrganizerEmail(env, client.email)) return 'admin'
+  return client.role === 'viewer' ? 'viewer' : 'admin'
+}
+
+/** Can this client perform write actions in /org? Organizer AND not a viewer. */
+export function canWrite(env, client) {
+  return isOrganizer(env, client) && roleOf(env, client) !== 'viewer'
+}
+
 /** Mint a single-use magic link for a client (only client.id is required); stores only the token hash. */
 export async function issueMagicLink(env, client, site) {
   const token = uid('') + uid('')
@@ -96,11 +108,18 @@ export async function issueMagicLink(env, client, site) {
   return `${site}/login?token=${token}`
 }
 
-/** Resolve the signed-in organizer (clientId + email), or null if not an organizer. */
+/** Resolve the signed-in organizer (id, email, name, role), or null if not an organizer. */
 export async function currentOrganizer(request, env) {
   const clientId = await currentClientId(request, env)
   if (!clientId) return null
-  const client = await env.DB.prepare('SELECT id, email, name, is_organizer FROM clients WHERE id = ?').bind(clientId).first()
+  const client = await env.DB.prepare('SELECT id, email, name, is_organizer, role FROM clients WHERE id = ?').bind(clientId).first()
   if (!client || !isOrganizer(env, client)) return null
   return client
+}
+
+/** Resolve the signed-in organizer only if they may write (not a viewer); else null. */
+export async function currentEditor(request, env) {
+  const org = await currentOrganizer(request, env)
+  if (!org || !canWrite(env, org)) return null
+  return org
 }
