@@ -4,13 +4,13 @@
 
 import { ok, json, fail, readJson } from '../../_lib/respond.js'
 import { uid, now, clampStr } from '../../_lib/util.js'
-import { currentOrganizer } from '../../_lib/auth.js'
+import { currentOrganizer, currentEditor } from '../../_lib/auth.js'
 import { toMinor, formatMoney } from '../../_lib/money.js'
 import { logActivity } from '../../_lib/activity.js'
 
 export async function onRequestPost({ request, env }) {
-  const org = await currentOrganizer(request, env)
-  if (!org) return fail('Organizer access required', 403)
+  const org = await currentEditor(request, env)
+  if (!org) return fail("Read-only access — this action isn't available.", 403)
 
   const body = await readJson(request)
   const inquiryId = clampStr(body.inquiryId, 60)
