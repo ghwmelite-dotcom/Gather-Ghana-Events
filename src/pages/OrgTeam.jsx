@@ -6,11 +6,14 @@ import Field from '../components/ui/Field.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
 import { ArrowLeft, Spinner, Lock, Plus } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 export default function OrgTeam() {
+  const { client } = useAuth()
+  const canWrite = client?.canWrite !== false
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading')
-  const [invite, setInvite] = useState({ email: '', name: '' })
+  const [invite, setInvite] = useState({ email: '', name: '', role: 'admin' })
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
@@ -23,14 +26,15 @@ export default function OrgTeam() {
 
   const run = async (fn) => { setBusy(true); setErr(''); setMsg(''); try { await fn() } catch (e) { setErr(e instanceof ApiError ? e.message : 'Action failed.') } finally { setBusy(false); await load() } }
   const sendInvite = () => {
-    const { email, name } = invite
+    const { email, name, role } = invite
     run(async () => {
-      const res = await api.orgOrganizerAction({ action: 'invite', email, name })
+      const res = await api.orgOrganizerAction({ action: 'invite', email, name, role })
       setMsg(res.emailed ? "Invite sent — they'll get a sign-in link." : 'Added, but the invite email could not be sent.')
-      setInvite({ email: '', name: '' })
+      setInvite({ email: '', name: '', role: 'admin' })
     })
   }
   const revoke = (m) => { if (confirm(`Revoke organizer access for ${m.email}?`)) run(() => api.orgOrganizerAction({ action: 'revoke', clientId: m.clientId })) }
+  const setRole = (m, role) => run(() => api.orgOrganizerAction({ action: 'setRole', clientId: m.clientId, role }))
 
   if (state === 'loading') return <div className="min-h-dvh grid place-items-center text-plum"><Spinner size={32} /></div>
   if (state === 'forbidden') return (
@@ -66,8 +70,18 @@ export default function OrgTeam() {
                 </div>
                 {m.source === 'config' ? (
                   <span className="text-[11px] px-2 py-0.5 rounded-full bg-plum/10 text-ink/55">Permanent (config)</span>
-                ) : m.isSelf ? null : (
-                  <button aria-label={`Revoke organizer access for ${m.name}`} disabled={busy} onClick={() => revoke(m)} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Revoke</button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-plum/10 text-ink/60">{m.role === 'viewer' ? 'Viewer' : 'Admin'}</span>
+                    {!m.isSelf && (
+                      <>
+                        <button disabled={busy || !canWrite} onClick={() => setRole(m, m.role === 'viewer' ? 'admin' : 'viewer')} className="text-xs rounded-full border border-plum/20 px-3 py-1.5 text-plum disabled:opacity-50">
+                          {m.role === 'viewer' ? 'Make admin' : 'Make viewer'}
+                        </button>
+                        <button aria-label={`Revoke organizer access for ${m.name}`} disabled={busy || !canWrite} onClick={() => revoke(m)} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Revoke</button>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
@@ -83,7 +97,18 @@ export default function OrgTeam() {
             <h2 className="font-display text-plum text-xl">Invite an organizer</h2>
             <Field label="Email" type="email" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} placeholder="name@example.com" />
             <Field label="Name (optional)" value={invite.name} onChange={(e) => setInvite({ ...invite, name: e.target.value })} />
-            <Button onClick={sendInvite} disabled={!invite.email || busy} variant="primary" size="sm"><Plus size={16} /> Send invite</Button>
+            <label className="block text-sm">
+              <span className="text-ink/70">Access</span>
+              <select
+                value={invite.role}
+                onChange={(e) => setInvite({ ...invite, role: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-plum/15 bg-cream px-3 py-2 text-plum"
+              >
+                <option value="admin">Admin — full access</option>
+                <option value="viewer">Viewer — read-only</option>
+              </select>
+            </label>
+            <Button onClick={sendInvite} disabled={!canWrite || !invite.email || busy} variant="primary" size="sm"><Plus size={16} /> Send invite</Button>
             {msg && <p className="text-kente text-sm">{msg}</p>}
             {err && <p role="alert" className="text-terracotta text-sm">{err}</p>}
           </div>
