@@ -371,6 +371,27 @@ export default function EventPage() {
         </Section>
       )}
 
+      {/* Self-serve funding preview — money not enabled until the studio accepts */}
+      {!event.contributions_enabled && event.self_serve === 1 && lineItems.length > 0 && (
+        <Section tone="cream" id="gift">
+          <Container className="max-w-2xl">
+            <div className="text-center mb-8">
+              <Eyebrow className="text-terracotta mb-3">A gift from the heart</Eyebrow>
+              <h2 className="font-display text-plum text-3xl sm:text-4xl text-balance">Help {event.host_names || 'the hosts'} celebrate</h2>
+              <p className="mt-4 text-ink/65">Funding opens once the studio confirms this event.</p>
+            </div>
+            <ul className="space-y-3">
+              {lineItems.map((l) => (
+                <li key={l.id} className="flex items-center justify-between gap-3 rounded-2xl bg-cream-deep border border-plum/8 p-4">
+                  <span className="font-display text-plum">{l.label}</span>
+                  {l.target > 0 && <span className="tnum text-ink/60 text-sm">{formatMoney(l.target, event.currency)}</span>}
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </Section>
+      )}
+
       {/* RSVP */}
       {event.rsvp_enabled && (
         <Section tone="creamDeep" id="rsvp">
