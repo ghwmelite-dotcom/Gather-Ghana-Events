@@ -306,3 +306,14 @@ CREATE TABLE IF NOT EXISTS services (
   created_at  INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_services_published ON services(published, sort);
+
+-- Editable page content: process steps, FAQ, testimonials (admin-managed).
+CREATE TABLE IF NOT EXISTS site_content (
+  id         TEXT PRIMARY KEY,
+  type       TEXT NOT NULL,               -- process | faq | testimonial
+  data       TEXT NOT NULL DEFAULT '{}',   -- JSON object, shape per type
+  sort       INTEGER NOT NULL DEFAULT 0,
+  published  INTEGER NOT NULL DEFAULT 1,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_site_content ON site_content(type, published, sort);
