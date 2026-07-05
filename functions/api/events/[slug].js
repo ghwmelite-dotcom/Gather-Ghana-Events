@@ -11,7 +11,7 @@ export async function onRequestGet({ params, env }) {
     .prepare(
       `SELECT id, slug, title, host_names, event_type, event_date, start_time, venue,
               location, cover_image, story, currency, visibility, rsvp_enabled,
-              contributions_enabled, contribution_goal, livestream_url
+              contributions_enabled, contribution_goal, livestream_url, self_serve
        FROM events WHERE slug = ?`
     )
     .bind(slug)
