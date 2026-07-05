@@ -144,7 +144,7 @@ export default function Concierge() {
                     <div className="flex gap-1.5">{plan.palette.map((c) => <span key={c} className="w-6 h-6 rounded-full border border-cream/30" style={{ background: c }} />)}</div>
                   </div>
                   <p className="mt-4 text-cream/85 leading-relaxed">{plan.concept}</p>
-                  <p className="mt-3 text-xs text-cream/45">{plan.aiUsed ? 'Crafted with AI' : 'Crafted from our planning playbooks'}</p>
+                  <p className="mt-3 text-xs text-cream/45">A first look — your planner refines every detail.</p>
                 </Reveal>
 
                 <Reveal className="rounded-3xl bg-cream-deep border border-plum/8 p-8" delay={80}>
@@ -203,10 +203,10 @@ export default function Concierge() {
                       <p className="font-display text-xl">Send this plan to our team</p>
                       <p className="text-cream/65 text-sm mt-1">We&apos;ll tailor it and reach out — no commitment.</p>
                       <div className="mt-5 space-y-3">
-                        <Field label="Your name" value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} />
-                        <Field label="Email" type="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} inputMode="email" />
-                        <Field label="Phone (optional)" type="tel" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} inputMode="tel" />
-                        <Field as="textarea" rows="2" label="Anything to add? (optional)" value={lead.note} onChange={(e) => setLead({ ...lead, note: e.target.value })} />
+                        <Field tone="dark" label="Your name" value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} placeholder="Ama Mensah" />
+                        <Field tone="dark" label="Email" type="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} inputMode="email" placeholder="you@example.com" />
+                        <Field tone="dark" label="Phone (optional)" type="tel" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} inputMode="tel" placeholder="+233 24 000 0000" />
+                        <Field tone="dark" as="textarea" rows="2" label="Anything to add? (optional)" value={lead.note} onChange={(e) => setLead({ ...lead, note: e.target.value })} placeholder="A date in mind, a must-have vendor…" />
                       </div>
                       {leadError && <p role="alert" className="text-sm text-champagne-light mt-3">{leadError}</p>}
                       <Button onClick={sendPlan} variant="gold" size="md" loading={sending} className="w-full mt-4">Send to our team <ArrowRight size={18} /></Button>

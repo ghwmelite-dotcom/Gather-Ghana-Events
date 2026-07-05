@@ -21,6 +21,7 @@ export default function Field({
   value,
   onChange,
   onBlur,
+  tone = 'light',
   className = '',
   ...rest
 }) {
@@ -36,7 +37,7 @@ export default function Field({
 
   return (
     <div className={className}>
-      <label htmlFor={id} className="block text-sm text-ink/60 mb-2">
+      <label htmlFor={id} className={`block text-sm mb-2 ${tone === 'dark' ? 'text-cream/70' : 'text-ink/60'}`}>
         {label}
         {required && <span className="text-terracotta ml-0.5" aria-hidden="true">*</span>}
       </label>
@@ -55,7 +56,7 @@ export default function Field({
         {...rest}
       />
       {helper && !error && (
-        <p id={helpId} className="mt-1.5 text-xs text-ink/45">{helper}</p>
+        <p id={helpId} className={`mt-1.5 text-xs ${tone === 'dark' ? 'text-cream/50' : 'text-ink/45'}`}>{helper}</p>
       )}
       {error && (
         <p id={errId} role="alert" className="mt-1.5 text-xs text-terracotta">{error}</p>
