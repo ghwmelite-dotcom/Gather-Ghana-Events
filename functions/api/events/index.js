@@ -12,7 +12,12 @@ export async function onRequestPost({ request, env }) {
   const owner = await db.prepare('SELECT email FROM clients WHERE id = ?').bind(clientId).first()
   const body = await readJson(request)
   try {
-    const res = await createEventRecord(db, owner?.email || null, body)
+    const res = await createEventRecord(db, owner?.email || null, {
+      ...body,
+      self_serve: true,
+      contributions_enabled: false,
+      visibility: 'unlisted',
+    })
     return ok(res)
   } catch (e) {
     if (e.status === 422) return fail(e.message, 422, { fields: e.fields })
