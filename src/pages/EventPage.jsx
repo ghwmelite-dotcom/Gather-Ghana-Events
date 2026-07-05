@@ -55,7 +55,7 @@ function ShareRow({ title }) {
   )
 }
 
-function ContributionPool({ slug, event, data, onLocalAdd }) {
+function ContributionPool({ slug, event, data, lineItems = [] }) {
   const cur = event.currency
   const { raised, goal, gifts, recent } = data
   const pct = goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : null
@@ -65,6 +65,8 @@ function ContributionPool({ slug, event, data, onLocalAdd }) {
   const [form, setForm] = useState({ name: '', email: '', message: '', anonymous: false })
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [lineId, setLineId] = useState(null)
+  const selectedLine = lineItems.find((l) => l.id === lineId) || null
 
   const give = async (e) => {
     e.preventDefault()
@@ -72,7 +74,7 @@ function ContributionPool({ slug, event, data, onLocalAdd }) {
     if (amount < toMinor(5, cur)) return setErr('Please choose a larger amount.')
     setBusy(true); setErr('')
     try {
-      const res = await api.contribute(slug, { ...form, amount })
+      const res = await api.contribute(slug, { ...form, amount, lineItemId: lineId })
       if (res?.authorization_url) { window.location.href = res.authorization_url; return }
       setErr('Could not start the payment. Please try again.'); setBusy(false)
     } catch (e2) {
@@ -82,6 +84,34 @@ function ContributionPool({ slug, event, data, onLocalAdd }) {
 
   return (
     <div className="grid lg:grid-cols-2 gap-8 items-start">
+      {lineItems.length > 0 && (
+        <div className="lg:col-span-2 rounded-3xl bg-cream-deep border border-plum/8 p-6">
+          <h3 className="font-display text-plum text-xl mb-1">Fund a specific part</h3>
+          <p className="text-ink/55 text-sm mb-4">Choose what your gift goes toward — or give to the whole celebration.</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {lineItems.map((l) => (
+              <button key={l.id} type="button" onClick={() => setLineId(lineId === l.id ? null : l.id)}
+                className={`text-left rounded-2xl border p-4 transition-colors ${lineId === l.id ? 'border-plum bg-plum/5' : 'border-plum/12 hover:border-plum/40'}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-display text-plum">{l.label}</span>
+                  {l.delivery_status !== 'pending' && (
+                    <span className="text-[10px] uppercase tracking-wide text-kente">✓ {l.delivery_status}</span>
+                  )}
+                </div>
+                <div className="mt-2 flex items-baseline justify-between text-sm">
+                  <span className="tnum text-ink/70">{formatMoney(l.raised, event.currency)}{l.target > 0 && <span className="text-ink/40"> of {formatMoney(l.target, event.currency)}</span>}</span>
+                  {l.pct !== null && <span className="tnum text-terracotta text-xs">{l.pct}%</span>}
+                </div>
+                {l.pct !== null && (
+                  <div className="mt-2 h-1.5 rounded-full bg-plum/10 overflow-hidden">
+                    <div className="h-full rounded-full bg-champagne" style={{ width: `${l.pct}%` }} />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="rounded-3xl bg-plum text-cream p-8">
         <Eyebrow className="text-champagne-light mb-3">The couple&apos;s pool</Eyebrow>
         <div className="flex items-baseline gap-3">
@@ -113,6 +143,12 @@ function ContributionPool({ slug, event, data, onLocalAdd }) {
 
       <form onSubmit={give} noValidate className="rounded-3xl bg-cream-deep border border-plum/8 p-8 space-y-5">
         <h3 className="font-display text-plum text-2xl">Send a gift</h3>
+        {selectedLine && (
+          <p className="text-sm text-ink/60 -mt-2">
+            Giving toward <span className="text-plum font-medium">{selectedLine.label}</span>
+            <button type="button" onClick={() => setLineId(null)} className="ml-2 text-terracotta text-xs link-underline">give generally instead</button>
+          </p>
+        )}
         <div className="grid grid-cols-4 gap-2">
           {chips.map((m) => (
             <button key={m} type="button" onClick={() => setAmount(m)}
@@ -229,7 +265,7 @@ export default function EventPage() {
   )
   if (error) return <div className="min-h-dvh grid place-items-center bg-plum-deep text-cream">Couldn&apos;t load this event.</div>
 
-  const { event, schedule, gallery, contributions } = data
+  const { event, schedule, gallery, contributions, lineItems = [] } = data
 
   return (
     <div className="min-h-dvh bg-cream">
@@ -330,7 +366,7 @@ export default function EventPage() {
               <h2 className="font-display text-plum text-3xl sm:text-4xl text-balance">Help {event.host_names || 'the hosts'} celebrate</h2>
               <p className="mt-4 text-ink/65">Contribute to the celebration directly — securely, by Mobile Money or card.</p>
             </div>
-            <ContributionPool slug={slug} event={event} data={contributions} />
+            <ContributionPool slug={slug} event={event} data={contributions} lineItems={lineItems} />
           </Container>
         </Section>
       )}
