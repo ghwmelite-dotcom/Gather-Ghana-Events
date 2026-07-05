@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS contributions (
   anonymous   INTEGER NOT NULL DEFAULT 0,
   status      TEXT NOT NULL DEFAULT 'pending', -- pending | success | failed
   reference   TEXT NOT NULL UNIQUE,
-  line_item_id TEXT,                              -- NULL = general pool
+  line_item_id TEXT REFERENCES event_line_items(id) ON DELETE SET NULL,  -- NULL = general pool
   created_at  INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_contributions_event ON contributions(event_id);
@@ -326,7 +326,7 @@ CREATE TABLE IF NOT EXISTS event_line_items (
   event_id        TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   label           TEXT NOT NULL,
   category_key    TEXT,
-  target_amount   INTEGER NOT NULL DEFAULT 0,      -- minor units (pesewas), event currency
+  target_amount   INTEGER NOT NULL DEFAULT 0,      -- minor units (pesewas), event currency; 0 = uncapped/no target
   sort            INTEGER NOT NULL DEFAULT 0,
   visible         INTEGER NOT NULL DEFAULT 1,
   delivery_status TEXT NOT NULL DEFAULT 'pending', -- pending | booked | delivered

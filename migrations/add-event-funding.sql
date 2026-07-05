@@ -15,5 +15,5 @@ CREATE TABLE IF NOT EXISTS event_line_items (
 );
 CREATE INDEX IF NOT EXISTS idx_line_items_event ON event_line_items(event_id, visible, sort);
 
-ALTER TABLE contributions ADD COLUMN line_item_id TEXT;
+ALTER TABLE contributions ADD COLUMN line_item_id TEXT REFERENCES event_line_items(id) ON DELETE SET NULL;
 ALTER TABLE inquiries ADD COLUMN quote_json TEXT;
