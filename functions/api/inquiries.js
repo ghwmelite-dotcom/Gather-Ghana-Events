@@ -17,6 +17,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const phone = clampStr(body.phone, 40)
   const date = clampStr(body.date, 20)
   const notes = clampStr(body.notes, 2000)
+  const quoteJson = typeof body.quoteJson === 'string' ? body.quoteJson.slice(0, 8000) : null
   const type = EVENT_TYPES.includes(body.type) ? body.type : 'Other'
   const guests = Math.max(0, Math.min(100000, parseInt(body.guests) || 0))
   const estimate = Math.max(0, parseInt(body.estimate) || 0)
@@ -57,10 +58,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
   await db
     .prepare(
       `INSERT INTO inquiries
-       (id, client_id, event_type, event_date, guests, estimate, deposit, notes, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)`
+       (id, client_id, event_type, event_date, guests, estimate, deposit, notes, quote_json, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)`
     )
-    .bind(inquiryId, clientId, type, date, guests, estimate, deposit, notes, ts)
+    .bind(inquiryId, clientId, type, date, guests, estimate, deposit, notes, quoteJson, ts)
     .run()
 
   // Fire-and-forget confirmation + organizer notification (no-op without Resend).

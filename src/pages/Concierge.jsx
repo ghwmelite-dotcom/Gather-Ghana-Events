@@ -47,7 +47,8 @@ export default function Concierge() {
     setSending(true); setLeadError('')
     try {
       const notes = lead.note.trim() ? `${plan.summary}\n\nNote: ${lead.note.trim()}` : plan.summary
-      await api.createInquiry({ type: plan.type, guests: plan.guests, estimate: plan.budget, deposit: 0, name: lead.name, email: lead.email, phone: lead.phone, notes })
+      const quoteJson = JSON.stringify((plan.budgetSplit || []).map((b) => ({ label: b.label, amount: b.amount })))
+      await api.createInquiry({ type: plan.type, guests: plan.guests, estimate: plan.budget, deposit: 0, name: lead.name, email: lead.email, phone: lead.phone, notes, quoteJson })
       setSent(true)
     } catch (e2) {
       setLeadError(e2 instanceof ApiError ? e2.message : 'Could not send. Please try again.')
