@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS inquiries (
   estimate    INTEGER,             -- GHS (whole cedis)
   deposit     INTEGER,             -- GHS (whole cedis)
   notes       TEXT,
+  quote_json  TEXT,                               -- JSON snapshot of the Instant Quote breakdown
   status      TEXT NOT NULL DEFAULT 'new',  -- new | quoted | booked | completed | cancelled
   created_at  INTEGER NOT NULL
 );
@@ -159,6 +160,7 @@ CREATE TABLE IF NOT EXISTS contributions (
   anonymous   INTEGER NOT NULL DEFAULT 0,
   status      TEXT NOT NULL DEFAULT 'pending', -- pending | success | failed
   reference   TEXT NOT NULL UNIQUE,
+  line_item_id TEXT,                              -- NULL = general pool
   created_at  INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_contributions_event ON contributions(event_id);
@@ -317,3 +319,17 @@ CREATE TABLE IF NOT EXISTS site_content (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_site_content ON site_content(type, published, sort);
+
+-- Line-itemized event funding (Fund-my-Event). Each row is a fundable target on an event page.
+CREATE TABLE IF NOT EXISTS event_line_items (
+  id              TEXT PRIMARY KEY,
+  event_id        TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  label           TEXT NOT NULL,
+  category_key    TEXT,
+  target_amount   INTEGER NOT NULL DEFAULT 0,      -- minor units (pesewas), event currency
+  sort            INTEGER NOT NULL DEFAULT 0,
+  visible         INTEGER NOT NULL DEFAULT 1,
+  delivery_status TEXT NOT NULL DEFAULT 'pending', -- pending | booked | delivered
+  created_at      INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_line_items_event ON event_line_items(event_id, visible, sort);
