@@ -107,6 +107,8 @@ export const api = {
     const qs = new URLSearchParams(Object.entries(query).filter(([, v]) => v)).toString()
     return request(`/org/activity${qs ? `?${qs}` : ''}`)
   },
+  orgEvents: () => request('/org/events'),
+  orgEventAction: (payload) => request('/org/events', { method: 'POST', body: payload }),
 
   // ---- Proposals (client accepts/declines) ----
   proposalAction: (proposalId, action) => request('/portal/proposals', { method: 'POST', body: { proposalId, action } }),
