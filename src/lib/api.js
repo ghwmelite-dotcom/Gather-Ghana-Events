@@ -51,6 +51,8 @@ export const api = {
 
   // ---- Portal (auth required) ----
   portal: () => request('/portal/me'),
+  portalFunding: () => request('/portal/funding'),
+  portalFundingAction: (payload) => request('/portal/funding', { method: 'POST', body: payload }),
   milestoneAction: (milestoneId, action) =>
     request('/portal/milestones', { method: 'POST', body: { milestoneId, action } }),
 
