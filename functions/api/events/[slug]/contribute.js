@@ -24,6 +24,17 @@ export async function onRequestPost({ params, request, env }) {
   const amount = Math.round(Number(body.amount) || 0) // minor units, event currency
   const anonymous = body.anonymous ? 1 : 0
 
+  // Optional: direct this gift to a specific, visible line item on THIS event.
+  let lineItemId = null
+  if (body.lineItemId) {
+    const li = await db
+      .prepare('SELECT id FROM event_line_items WHERE id = ? AND event_id = ? AND visible = 1')
+      .bind(clampStr(body.lineItemId, 60), event.id)
+      .first()
+    if (!li) return fail('That funding item is not available', 422)
+    lineItemId = li.id
+  }
+
   if (!isEmail(email)) return fail('A valid email is required for your receipt', 422)
   if (amount < MIN_MINOR) return fail('Please enter a larger amount', 422)
 
@@ -42,12 +53,12 @@ export async function onRequestPost({ params, request, env }) {
   await db
     .prepare(
       `INSERT INTO contributions
-       (id, event_id, name, email, amount, currency, message, anonymous, status, reference, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`
+       (id, event_id, name, email, amount, currency, message, anonymous, status, reference, line_item_id, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`
     )
     .bind(
       uid('con_'), event.id, name, email, amount, event.currency,
-      clampStr(body.message, 500), anonymous, reference, now()
+      clampStr(body.message, 500), anonymous, reference, lineItemId, now()
     )
     .run()
 
