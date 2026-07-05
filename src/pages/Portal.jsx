@@ -7,7 +7,8 @@ import {
 } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { fmtGhs } from '../lib/content.js'
-import { formatMoney } from '../lib/money.js'
+import { formatMoney, fromMinor, toMinor } from '../lib/money.js'
+import Field from '../components/ui/Field.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 
 const escrowChip = {
@@ -89,6 +90,85 @@ function Timeline({ items, onAction, acting }) {
         )
       })}
     </ol>
+  )
+}
+
+function PortalFunding() {
+  const [data, setData] = useState(null)
+  const [creating, setCreating] = useState({ title: '', host_names: '' })
+  const [draft, setDraft] = useState({ label: '', goal: '' })
+  const [busy, setBusy] = useState(false)
+
+  const load = useCallback(async () => {
+    try { setData(await api.portalFunding()) } catch { setData({ event: null, canCreate: false }) }
+  }, [])
+  useEffect(() => { load() }, [load])
+
+  const act = async (payload) => { setBusy(true); try { await api.portalFundingAction(payload); await load() } catch { /* noop */ } finally { setBusy(false) } }
+
+  if (data === null) return null
+
+  if (!data.event) {
+    if (!data.canCreate) return null
+    return (
+      <div className="rounded-3xl bg-cream-deep border border-plum/8 p-8">
+        <h2 className="font-display text-plum text-2xl mb-1">Your funding page</h2>
+        <p className="text-ink/55 text-sm mb-5">Turn your quote into a page loved ones can contribute to. You share it; we enable giving once your event is confirmed.</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <Field className="flex-1 min-w-[160px]" label="Page title" value={creating.title} onChange={(e) => setCreating({ ...creating, title: e.target.value })} placeholder="Ama & Kojo's Wedding" />
+          <Field label="Host names" value={creating.host_names} onChange={(e) => setCreating({ ...creating, host_names: e.target.value })} placeholder="Ama & Kojo" />
+          <Button
+            onClick={() => act({ action: 'create', title: creating.title || `${creating.host_names || 'Our'} celebration`, host_names: creating.host_names, event_type: data.inquiry?.event_type, event_date: data.inquiry?.event_date })}
+            variant="primary" size="sm" loading={busy}
+          >Create page</Button>
+        </div>
+      </div>
+    )
+  }
+
+  const ev = data.event
+  const live = ev.contributions_enabled === 1
+  const lines = data.lineItems || []
+  const addLine = async () => {
+    if (!draft.label.trim()) return
+    await act({ action: 'line_upsert', label: draft.label, target_amount: toMinor(parseFloat(draft.goal) || 0, 'GHS'), sort: lines.length })
+    setDraft({ label: '', goal: '' })
+  }
+
+  return (
+    <div className="rounded-3xl bg-cream-deep border border-plum/8 p-8 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-plum text-2xl">Your funding page</h2>
+        <span className={`text-[11px] px-2 py-0.5 rounded-full ${live ? 'bg-kente/15 text-kente' : 'bg-champagne/20 text-terracotta'}`}>{live ? 'Live' : 'Pending studio approval'}</span>
+      </div>
+      <a href={`/e/${ev.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-terracotta link-underline">Share your page · /e/{ev.slug} <ArrowRight size={14} /></a>
+
+      <div className="pt-3 border-t border-plum/10 space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-xs uppercase tracking-wider text-ink/45">Funding lines</p>
+          {data.inquiry?.hasQuote && lines.length === 0 && (
+            <button type="button" onClick={() => act({ action: 'import_lines' })} disabled={busy} className="text-xs rounded-full bg-plum text-cream px-3 py-1.5 disabled:opacity-50">Import my quote</button>
+          )}
+        </div>
+        {lines.length === 0 ? <p className="text-ink/45 text-xs">No lines yet — import your quote or add one below.</p> : (
+          <ul className="space-y-2">
+            {lines.map((l) => (
+              <li key={l.id} className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="flex-1 min-w-[120px] text-ink/80">{l.label} {l.visible ? '' : <span className="text-ink/40 text-xs">(hidden)</span>}</span>
+                <span className="tnum text-plum">{fromMinor(l.target, 'GHS')} GH₵</span>
+                <button type="button" onClick={() => act({ action: 'line_upsert', id: l.id, label: l.label, target_amount: l.target, sort: l.sort, visible: l.visible ? false : true })} className="text-xs text-ink/50 link-underline">{l.visible ? 'Hide' : 'Show'}</button>
+                <button type="button" onClick={() => act({ action: 'line_delete', id: l.id })} className="text-xs text-terracotta link-underline">Delete</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex flex-wrap items-end gap-2 pt-1">
+          <Field className="flex-1 min-w-[140px]" label="New line" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} placeholder="Catering" />
+          <Field label="Target (GH₵)" type="number" value={draft.goal} onChange={(e) => setDraft({ ...draft, goal: e.target.value })} />
+          <Button onClick={addLine} variant="outline" size="sm" loading={busy}>Add</Button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -258,6 +338,8 @@ export default function Portal() {
                     </p>
                   )}
                 </div>
+
+                <PortalFunding />
 
                 <div className="rounded-3xl bg-cream-deep border border-plum/8 p-8">
                   <h2 className="font-display text-plum text-2xl mb-6">Planning timeline</h2>
