@@ -156,7 +156,7 @@ function Header() {
       <Container className="flex items-center justify-between">
         <Logo light={onHero} />
         <nav className="hidden md:flex items-center gap-5 lg:gap-7" aria-label="Primary">
-          {navItems.map((item) => (
+          {primaryNav.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -175,6 +175,15 @@ function Header() {
               {item.label}
             </NavLink>
           ))}
+          <NavLink
+            to="/concierge"
+            className={`inline-flex items-center gap-1.5 text-sm font-medium tracking-wide link-underline rounded transition-colors ${
+              onHero ? 'text-champagne-light hover:text-champagne' : 'text-terracotta hover:text-terracotta/80'
+            }`}
+          >
+            <Sparkles size={15} /> Instant Quote
+          </NavLink>
+          <MoreMenu light={onHero} items={moreNav} />
           <CurrencySelect tone={onHero ? 'light' : 'dark'} />
           <Link
             to="/book"
