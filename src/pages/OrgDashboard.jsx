@@ -5,9 +5,17 @@ import Button from '../components/ui/Button.jsx'
 import Field from '../components/ui/Field.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
 import { Users, Calendar, Heart, Lock, Spinner, ArrowRight, Plus } from '../lib/icons.jsx'
+import * as Icons from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
 import { formatMoney } from '../lib/money.js'
+import { sectionsForRole } from '../lib/guide.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+
+// Resolve a guide section's icon name to its component, with a safe fallback.
+function GuideIcon({ name, ...props }) {
+  const C = Icons[name] || Icons.Sparkles
+  return <C {...props} />
+}
 
 const ghs = (whole) => 'GH₵ ' + Number(whole || 0).toLocaleString()
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
@@ -64,6 +72,8 @@ function LeadRow({ lead, onProposal, canWrite }) {
 export default function OrgDashboard() {
   const { client } = useAuth()
   const canWrite = client?.canWrite !== false
+  const guideRole = canWrite ? 'admin' : 'viewer'
+  const guideLinks = sectionsForRole(guideRole).slice(0, 6)
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading') // loading | ok | forbidden | error
 
@@ -112,7 +122,7 @@ export default function OrgDashboard() {
             <Link to="/org/vendors" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Vendors</Link>
             <Link to="/org/messages" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Inbox</Link>
             <Link to="/org/team" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Team</Link>
-            <Link to="/guide#organizers" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Guide</Link>
+            <Link to={`/guide?role=${guideRole}`} className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Guide</Link>
           </nav>
         </Container>
       </section>
@@ -158,6 +168,32 @@ export default function OrgDashboard() {
             </div>
 
             <div className="space-y-8">
+              {/* Role-aware guide — surfaces the handbook topics that matter to this role. */}
+              <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
+                <div className="flex items-center gap-3">
+                  <span className="grid place-items-center w-9 h-9 rounded-full bg-plum/5 text-terracotta shrink-0"><Icons.Sparkles size={18} /></span>
+                  <h2 className="font-display text-plum text-xl">{canWrite ? 'Your guide' : 'View-only guide'}</h2>
+                </div>
+                <p className="text-ink/55 text-sm mt-2 mb-4">
+                  {canWrite
+                    ? 'The handbook topics that matter most when you’re running the show.'
+                    : 'You have view-only access — here’s how to read everything you can see.'}
+                </p>
+                <ul className="space-y-0.5">
+                  {guideLinks.map((s) => (
+                    <li key={s.id}>
+                      <Link to={`/guide?role=${guideRole}#${s.id}`} className="flex items-center gap-2.5 py-1 text-sm text-ink/75 hover:text-plum transition-colors">
+                        <span className="grid place-items-center w-7 h-7 rounded-full bg-plum/5 text-terracotta shrink-0"><GuideIcon name={s.icon} size={14} /></span>
+                        <span className="link-underline">{s.title}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link to={`/guide?role=${guideRole}`} className="mt-4 inline-flex items-center gap-1.5 text-sm text-terracotta link-underline">
+                  {canWrite ? 'Open the full guide' : 'Open your full guide'} <ArrowRight size={14} />
+                </Link>
+              </div>
+
               <Link to="/org/events" className="block rounded-3xl bg-plum text-cream p-7 hover:bg-plum-soft transition-colors">
                 <p className="font-display text-xl">Event pages</p>
                 <p className="text-cream/65 text-sm mt-1">Create and manage shareable event pages.</p>

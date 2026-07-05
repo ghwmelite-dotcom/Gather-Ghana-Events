@@ -1,9 +1,11 @@
-import { useEffect, useState, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState, useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import Seo from '../components/Seo.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
 import * as Icons from '../lib/icons.jsx'
-import { GUIDE_OVERVIEW, GUIDE_GROUPS } from '../lib/guide.js'
+import { GUIDE_OVERVIEW, GUIDE_ROLES, groupsForRole } from '../lib/guide.js'
+
+const ROLE_IDS = GUIDE_ROLES.map((r) => r.id)
 
 const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -19,34 +21,57 @@ const scrollToId = (id) => {
 }
 
 export default function Guide() {
-  const [active, setActive] = useState(GUIDE_OVERVIEW.id)
-  const sectionIds = useRef([GUIDE_OVERVIEW.id, ...GUIDE_GROUPS.flatMap((g) => g.sections.map((s) => s.id))])
+  const [params, setParams] = useSearchParams()
+  const roleParam = params.get('role')
+  const role = ROLE_IDS.includes(roleParam) ? roleParam : null
+  const roleMeta = GUIDE_ROLES.find((r) => r.id === role)
 
-  // Deep links like /guide#clients or /guide#org-escrow scroll into view on load.
+  // Sections shown depend on the selected role (falls back to the full guide).
+  const groups = useMemo(() => groupsForRole(role), [role])
+  const sectionIds = useMemo(
+    () => [GUIDE_OVERVIEW.id, ...groups.flatMap((g) => g.sections.map((s) => s.id))],
+    [groups]
+  )
+
+  const [active, setActive] = useState(GUIDE_OVERVIEW.id)
+
+  // Deep links like /guide?role=client#cl-timeline scroll into view on load.
   useEffect(() => {
     const id = window.location.hash.slice(1)
     if (id) setTimeout(() => scrollToId(id), 50)
   }, [])
 
-  // Scroll-spy: mark the section nearest the top as active.
+  // Scroll-spy: mark the section nearest the top as active. Re-runs when the role filter changes.
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id) }),
       { rootMargin: '-30% 0px -60% 0px', threshold: 0 }
     )
-    sectionIds.current.forEach((id) => {
+    sectionIds.forEach((id) => {
       const el = document.getElementById(id)
       if (el) obs.observe(el)
     })
     return () => obs.disconnect()
-  }, [])
+  }, [sectionIds])
 
   const onTocClick = (e, id) => {
     e.preventDefault()
     scrollToId(id)
-    history.replaceState(null, '', `#${id}`)
+    const qs = params.toString()
+    history.replaceState(null, '', `${qs ? `?${qs}` : ''}#${id}`)
     setActive(id)
   }
+
+  const selectRole = (id) => {
+    const next = new URLSearchParams(params)
+    if (id) next.set('role', id); else next.delete('role')
+    setParams(next, { replace: true })
+    setActive('overview')
+    scrollToId('overview')
+  }
+
+  const tabClass = (isActive) =>
+    `text-sm rounded-full px-4 py-1.5 transition-colors ${isActive ? 'bg-champagne text-plum-deep font-medium' : 'bg-cream/10 text-cream hover:bg-cream/20'}`
 
   return (
     <>
@@ -56,7 +81,15 @@ export default function Guide() {
         <Container>
           <p className="text-champagne-light text-sm tracking-[0.3em] uppercase mb-3">Guide</p>
           <h1 className="font-display text-4xl sm:text-5xl max-w-2xl">Everything you need to run and enjoy Gather Ghana.</h1>
-          <p className="text-cream/70 mt-4 max-w-xl">A quick walkthrough of the planner dashboard and the client experience — pick a topic on the left.</p>
+          <p className="text-cream/70 mt-4 max-w-xl">{roleMeta ? roleMeta.hero : 'A quick walkthrough of the planner dashboard and the client experience — pick a topic on the left.'}</p>
+
+          {/* Role filter — show each role only the parts of the guide that matter to them. */}
+          <div className="mt-6 flex flex-wrap gap-2" role="group" aria-label="Show the guide for">
+            <button type="button" onClick={() => selectRole(null)} className={tabClass(!role)} aria-pressed={!role}>Everyone</button>
+            {GUIDE_ROLES.map((r) => (
+              <button key={r.id} type="button" onClick={() => selectRole(r.id)} className={tabClass(role === r.id)} aria-pressed={role === r.id}>{r.label}</button>
+            ))}
+          </div>
         </Container>
       </section>
 
@@ -75,7 +108,7 @@ export default function Guide() {
                 </a>
               </li>
             </ul>
-            {GUIDE_GROUPS.map((g) => (
+            {groups.map((g) => (
               <div key={g.id} className="mb-6">
                 <p className="text-xs uppercase tracking-wider text-ink/40 mb-2">{g.label}</p>
                 <ul className="space-y-1.5 border-l border-plum/10">
@@ -101,7 +134,7 @@ export default function Guide() {
               <summary className="font-display text-plum cursor-pointer">Contents</summary>
               <div className="mt-3 space-y-3">
                 <a href="#overview" className="block text-sm text-terracotta link-underline">Overview</a>
-                {GUIDE_GROUPS.map((g) => (
+                {groups.map((g) => (
                   <div key={g.id}>
                     <p className="text-xs uppercase tracking-wider text-ink/40 mb-1">{g.label}</p>
                     <ul className="space-y-1">
@@ -133,7 +166,7 @@ export default function Guide() {
               <p className="mt-6 text-ink/55 text-sm italic">{GUIDE_OVERVIEW.closing}</p>
             </section>
 
-            {GUIDE_GROUPS.map((g) => (
+            {groups.map((g) => (
               <div key={g.id} id={g.id} className="mb-12 scroll-mt-28">
                 <h2 className="font-display text-plum text-3xl">{g.label}</h2>
                 <p className="text-ink/60 mt-1 mb-7">{g.blurb}</p>

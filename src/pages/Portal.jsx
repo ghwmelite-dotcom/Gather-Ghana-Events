@@ -411,7 +411,7 @@ export default function Portal() {
                 >
                   <WhatsApp size={18} /> Message your planner
                 </a>
-                <Button to="/guide#clients" variant="outline" size="sm" className="w-full">Need help? Read the guide</Button>
+                <Button to="/guide?role=client" variant="outline" size="sm" className="w-full">Need help? Read the guide</Button>
               </div>
             </div>
           )}

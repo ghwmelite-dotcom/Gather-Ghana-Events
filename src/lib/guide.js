@@ -1,6 +1,8 @@
 // Content for the public /guide page. Edit the copy here — the page renders from this.
-// Each group: { id, label, blurb, sections }. Each section: { id, icon, title, intro, steps?, note? }.
+// Each group: { id, label, blurb, sections }. Each section: { id, icon, title, intro, steps?, note?, roles }.
 // `icon` must be an export name from src/lib/icons.jsx.
+// `roles` lists who the section is useful to: 'admin' (full organizer), 'viewer' (read-only
+// organizer), 'client'. The dashboard and /guide use it to show each role only what's relevant.
 
 export const GUIDE_OVERVIEW = {
   id: 'overview',
@@ -29,7 +31,7 @@ export const GUIDE_GROUPS = [
     blurb: 'Run the business — leads, proposals, escrow, vendors, and your team.',
     sections: [
       {
-        id: 'org-signin', icon: 'Lock', title: 'Signing in & access',
+        id: 'org-signin', icon: 'Lock', title: 'Signing in & access', roles: ['admin', 'viewer'],
         intro: 'Gather Ghana is passwordless — you sign in with a secure link sent to your email.',
         steps: [
           'Go to the Sign in page and enter your email.',
@@ -39,16 +41,17 @@ export const GUIDE_GROUPS = [
         note: 'Organizer access is granted from the Team page (below) or set by the studio.',
       },
       {
-        id: 'org-leads', icon: 'Users', title: 'Leads & proposals',
+        id: 'org-leads', icon: 'Users', title: 'Leads & proposals', roles: ['admin', 'viewer'],
         intro: 'Every booking enquiry becomes a lead on your dashboard.',
         steps: [
           'Open a lead to see the couple, event, estimate and brief.',
           'Send a proposal — a titled quote with an amount — from the lead or the client page.',
           'The client reviews it in their portal and accepts or declines.',
         ],
+        note: 'View-only team members can read every lead and proposal, but only full organizers can send them.',
       },
       {
-        id: 'org-escrow', icon: 'Lock', title: 'Milestones & the Gather Guarantee',
+        id: 'org-escrow', icon: 'Lock', title: 'Milestones & the Gather Guarantee', roles: ['admin', 'viewer'],
         intro: 'Milestones break the work into stages; escrow protects the money behind each one.',
         steps: [
           'On a client’s page, add a milestone with a title, due date and amount.',
@@ -58,7 +61,7 @@ export const GUIDE_GROUPS = [
         note: 'That hold-until-approved promise is the “Gather Guarantee”.',
       },
       {
-        id: 'org-vendors', icon: 'Building', title: 'Vendors',
+        id: 'org-vendors', icon: 'Building', title: 'Vendors', roles: ['admin'],
         intro: 'Curate the marketplace couples browse at /vendors.',
         steps: [
           'Open Vendors from the dashboard to add, edit or remove a vendor.',
@@ -66,7 +69,7 @@ export const GUIDE_GROUPS = [
         ],
       },
       {
-        id: 'org-inbox', icon: 'Mail', title: 'Inbox',
+        id: 'org-inbox', icon: 'Mail', title: 'Inbox', roles: ['admin'],
         intro: 'Messages from the contact form land in your inbox.',
         steps: [
           'Open Inbox and tap a message to read it — opening it marks it as read.',
@@ -75,7 +78,7 @@ export const GUIDE_GROUPS = [
         ],
       },
       {
-        id: 'org-thread', icon: 'Mail', title: 'Messages with clients',
+        id: 'org-thread', icon: 'Mail', title: 'Messages with clients', roles: ['admin', 'viewer'],
         intro: 'Every event has its own conversation, kept with the record.',
         steps: [
           'On a client’s page, write in the Messages card — the client gets an email and sees it in their portal.',
@@ -84,15 +87,17 @@ export const GUIDE_GROUPS = [
         ],
       },
       {
-        id: 'org-team', icon: 'Users', title: 'Team',
-        intro: 'Decide who can access the organizer portal.',
+        id: 'org-team', icon: 'Users', title: 'Team & roles', roles: ['admin'],
+        intro: 'Decide who can access the organizer portal, and at what level.',
         steps: [
           'Open Team and invite an organizer by email — they receive a sign-in link.',
+          'Choose a role: full organizers can edit everything; view-only members can see the whole operation but make no changes.',
           'Revoke access any time. Core organizers set by the studio are permanent.',
         ],
+        note: 'Give bookkeepers, assistants or stakeholders a view-only seat when they need visibility, not control.',
       },
       {
-        id: 'org-tasks', icon: 'CheckCircle', title: 'Team tasks',
+        id: 'org-tasks', icon: 'CheckCircle', title: 'Team tasks', roles: ['admin', 'viewer'],
         intro: 'Stop juggling lists — assign the work and watch it move.',
         steps: [
           'Open Tasks from the dashboard, or add tasks right on a client’s page.',
@@ -102,17 +107,18 @@ export const GUIDE_GROUPS = [
         note: 'Every change is recorded in the activity trail, so you always know who did what.',
       },
       {
-        id: 'org-books', icon: 'CreditCard', title: 'Books — costs, budgets & margins',
+        id: 'org-books', icon: 'CreditCard', title: 'Financials — costs, budgets & margins', roles: ['admin', 'viewer'],
         intro: 'The money picture across every event, without a spreadsheet.',
         steps: [
-          'Record cost lines (venue, catering, decor…) on a client’s page or in Books.',
+          'Record cost lines (venue, catering, decor…) on a client’s page or in Financials.',
           'Move each line planned → committed → paid as it happens — planned and committed lines are your budget.',
-          'Books shows collected, outstanding, costs and margin per event and overall.',
+          'Financials shows collected, outstanding, costs and margin per event and overall.',
           'Export Events, Payments or Expenses as CSV any time for your accountant.',
         ],
+        note: 'View-only members can read every figure and export the CSVs, ideal for an accountant.',
       },
       {
-        id: 'org-events', icon: 'Calendar', title: 'Event pages',
+        id: 'org-events', icon: 'Calendar', title: 'Event pages', roles: ['admin'],
         intro: 'Give each celebration a beautiful public page.',
         steps: [
           'Create an event page from the dashboard with the couple, date and details.',
@@ -127,7 +133,7 @@ export const GUIDE_GROUPS = [
     blurb: 'Plan your celebration, track payments, and let loved ones be part of it.',
     sections: [
       {
-        id: 'cl-signin', icon: 'Lock', title: 'Signing in to your portal',
+        id: 'cl-signin', icon: 'Lock', title: 'Signing in to your portal', roles: ['client'],
         intro: 'No password needed — we email you a secure sign-in link.',
         steps: [
           'Go to the Sign in page and enter the email you booked with.',
@@ -135,7 +141,7 @@ export const GUIDE_GROUPS = [
         ],
       },
       {
-        id: 'cl-timeline', icon: 'CreditCard', title: 'Your timeline & payments',
+        id: 'cl-timeline', icon: 'CreditCard', title: 'Your timeline & payments', roles: ['client'],
         intro: 'Your portal shows your event, planning timeline and money in one place.',
         steps: [
           'Follow each milestone as your planner moves it forward.',
@@ -143,7 +149,7 @@ export const GUIDE_GROUPS = [
         ],
       },
       {
-        id: 'cl-proposals', icon: 'CheckCircle', title: 'Proposals',
+        id: 'cl-proposals', icon: 'CheckCircle', title: 'Proposals', roles: ['client'],
         intro: 'When your planner sends a quote, it appears in your portal.',
         steps: [
           'Read the proposal and its amount.',
@@ -151,7 +157,7 @@ export const GUIDE_GROUPS = [
         ],
       },
       {
-        id: 'cl-escrow', icon: 'Lock', title: 'Approving escrow releases',
+        id: 'cl-escrow', icon: 'Lock', title: 'Approving escrow releases', roles: ['client'],
         intro: 'Your payments are held safely until you’re happy.',
         steps: [
           'When a milestone is funded and release is requested, you’ll see Approve & release.',
@@ -159,7 +165,7 @@ export const GUIDE_GROUPS = [
         ],
       },
       {
-        id: 'cl-messages', icon: 'Mail', title: 'Messaging your planner',
+        id: 'cl-messages', icon: 'Mail', title: 'Messaging your planner', roles: ['client'],
         intro: 'Talk to your planner without leaving your portal.',
         steps: [
           'Open the Messages card in your portal and write your message.',
@@ -168,7 +174,7 @@ export const GUIDE_GROUPS = [
         note: 'The whole conversation stays with your event — nothing gets lost in chat apps.',
       },
       {
-        id: 'cl-events', icon: 'Heart', title: 'Event pages, RSVPs & gifts',
+        id: 'cl-events', icon: 'Heart', title: 'Event pages, RSVPs & gifts', roles: ['client'],
         intro: 'Your event page lets guests celebrate with you.',
         steps: [
           'Share your /e/ link so guests can RSVP and see the schedule.',
@@ -176,7 +182,7 @@ export const GUIDE_GROUPS = [
         ],
       },
       {
-        id: 'cl-financing', icon: 'Clock', title: 'Plan now, pay over time',
+        id: 'cl-financing', icon: 'Clock', title: 'Plan now, pay over time', roles: ['client'],
         intro: 'Spread the cost with a deposit and instalments.',
         steps: [
           'On the Book page, use the estimate widget to see a deposit (about 30%) plus monthly instalments.',
@@ -185,3 +191,32 @@ export const GUIDE_GROUPS = [
     ],
   },
 ]
+
+// Signed-in roles the guide can tailor itself to. `admin` = full organizer, `viewer` =
+// read-only organizer, `client` = a couple using their portal.
+export const GUIDE_ROLES = [
+  { id: 'admin', label: 'Organizer', hero: 'Run the whole business — leads, escrow, financials, your team and more.' },
+  { id: 'viewer', label: 'View-only', hero: 'See the whole operation at a glance. Changes are made by full organizers.' },
+  { id: 'client', label: 'Client', hero: 'Plan your celebration, track every payment, and bring loved ones in.' },
+]
+
+const ROLE_IDS = GUIDE_ROLES.map((r) => r.id)
+
+// Every section, flattened in guide order, tagged with its parent group.
+const ALL_SECTIONS = GUIDE_GROUPS.flatMap((g) =>
+  g.sections.map((s) => ({ ...s, groupId: g.id, groupLabel: g.label }))
+)
+
+/** Flat list of guide sections useful to a role (in guide order). Unknown/empty role → all. */
+export function sectionsForRole(role) {
+  if (!ROLE_IDS.includes(role)) return ALL_SECTIONS
+  return ALL_SECTIONS.filter((s) => (s.roles || []).includes(role))
+}
+
+/** GUIDE_GROUPS pruned to a role — sections and empty groups are dropped. Unknown/empty role → all. */
+export function groupsForRole(role) {
+  if (!ROLE_IDS.includes(role)) return GUIDE_GROUPS
+  return GUIDE_GROUPS
+    .map((g) => ({ ...g, sections: g.sections.filter((s) => (s.roles || []).includes(role)) }))
+    .filter((g) => g.sections.length > 0)
+}
