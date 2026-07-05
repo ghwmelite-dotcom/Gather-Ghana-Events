@@ -29,15 +29,22 @@ assert.equal(admin.length, 10)
 assert.ok(admin.every((s) => s.id.startsWith('org-')))
 assert.deepEqual(groupsForRole('admin').map((g) => g.id), ['organizers'])
 
-// View-only members get the read/monitor subset — no write-only pages (vendors, inbox, team, events).
+// View-only members get the read/monitor subset — pages they can browse, including the
+// read-only Vendors and Inbox — but NOT the administration pages (Team, Events).
 const viewer = sectionsForRole('viewer').map((s) => s.id)
-assert.deepEqual(viewer, ['org-signin', 'org-leads', 'org-escrow', 'org-thread', 'org-tasks', 'org-books'])
-for (const writeOnly of ['org-vendors', 'org-inbox', 'org-team', 'org-events']) {
-  assert.ok(!viewer.includes(writeOnly), `viewer should not see ${writeOnly}`)
+assert.deepEqual(viewer, ['org-signin', 'org-leads', 'org-escrow', 'org-vendors', 'org-inbox', 'org-thread', 'org-tasks', 'org-books'])
+for (const readable of ['org-vendors', 'org-inbox']) {
+  assert.ok(viewer.includes(readable), `viewer should see the readable page ${readable}`)
+}
+for (const adminOnly of ['org-team', 'org-events']) {
+  assert.ok(!viewer.includes(adminOnly), `viewer should not see admin-only ${adminOnly}`)
 }
 
-// The dashboard shows up to 6 links; both org roles have enough to fill the card.
-assert.ok(sectionsForRole('admin').slice(0, 6).length === 6)
-assert.ok(sectionsForRole('viewer').slice(0, 6).length === 6)
+// The dashboard card drops the "signing in" topic (already authenticated) and caps at 6.
+const cardLinks = (role) => sectionsForRole(role).filter((s) => !s.id.endsWith('-signin')).slice(0, 6)
+assert.equal(cardLinks('admin').length, 6)
+assert.equal(cardLinks('viewer').length, 6)
+assert.ok(!cardLinks('admin').some((s) => s.id.endsWith('-signin')))
+assert.ok(!cardLinks('viewer').some((s) => s.id.endsWith('-signin')))
 
 console.log('OK: guide role helper assertions passed')

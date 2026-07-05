@@ -73,7 +73,8 @@ export default function OrgDashboard() {
   const { client } = useAuth()
   const canWrite = client?.canWrite !== false
   const guideRole = canWrite ? 'admin' : 'viewer'
-  const guideLinks = sectionsForRole(guideRole).slice(0, 6)
+  // Skip the "signing in" topic on the card — they're already in the dashboard — and cap the teaser.
+  const guideLinks = sectionsForRole(guideRole).filter((s) => !s.id.endsWith('-signin')).slice(0, 6)
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading') // loading | ok | forbidden | error
 

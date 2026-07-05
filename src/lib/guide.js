@@ -61,21 +61,23 @@ export const GUIDE_GROUPS = [
         note: 'That hold-until-approved promise is the “Gather Guarantee”.',
       },
       {
-        id: 'org-vendors', icon: 'Building', title: 'Vendors', roles: ['admin'],
+        id: 'org-vendors', icon: 'Building', title: 'Vendors', roles: ['admin', 'viewer'],
         intro: 'Curate the marketplace couples browse at /vendors.',
         steps: [
           'Open Vendors from the dashboard to add, edit or remove a vendor.',
           'Toggle Verified on the vendors you trust — verified vendors appear first publicly.',
         ],
+        note: 'View-only members can browse the full vendor list; adding, editing and verifying is done by full organizers.',
       },
       {
-        id: 'org-inbox', icon: 'Mail', title: 'Inbox', roles: ['admin'],
+        id: 'org-inbox', icon: 'Mail', title: 'Inbox', roles: ['admin', 'viewer'],
         intro: 'Messages from the contact form land in your inbox.',
         steps: [
           'Open Inbox and tap a message to read it — opening it marks it as read.',
           'Write a reply and send; it’s emailed to the sender and kept in the inbox history.',
           'Messages from existing clients carry an “Existing client” link to their page.',
         ],
+        note: 'View-only members can read every message; replies are sent by full organizers.',
       },
       {
         id: 'org-thread', icon: 'Mail', title: 'Messages with clients', roles: ['admin', 'viewer'],
