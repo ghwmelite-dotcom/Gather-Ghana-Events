@@ -41,4 +41,7 @@ assert.ok(priCombined.find((s) => s.label === 'Venue & catering').pct > 45, 'com
 const s = packageSummary({ type: 'Wedding', guests: 150, budget: 50000, perGuest: 333, priorities: ['photography'], split: [{ label: 'Photography & film', amount: 12000 }] })
 assert.ok(s.includes('Wedding') && s.includes('150') && s.includes('50,000') && s.includes('Photography & film'))
 
+// packageSummary uses `label` for the Event line when provided, else falls back to `type`.
+assert.ok(packageSummary({ type: 'Other', guests: 100, budget: 1000, perGuest: 10, priorities: [], split: [], label: 'Naming ceremony' }).includes('Event: Naming ceremony'))
+assert.ok(packageSummary({ type: 'Wedding', guests: 100, budget: 1000, perGuest: 10, priorities: [], split: [] }).includes('Event: Wedding'))
 console.log('OK: package helper assertions passed')

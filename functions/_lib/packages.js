@@ -48,12 +48,12 @@ export function reweightSplit(split, priorities = [], boost = 1.6) {
 }
 
 /** Human-readable package summary for inquiry notes + WhatsApp text. */
-export function packageSummary({ type, guests, budget, perGuest, priorities, split }) {
+export function packageSummary({ type, guests, budget, perGuest, priorities, split, label }) {
   const lines = split.map((s) => ` • ${s.label}: GHS ${Number(s.amount).toLocaleString()}`).join('\n')
   const pri = priorities && priorities.length ? priorities.join(', ') : 'none'
   return (
     `Custom package request\n` +
-    `Event: ${type}\n` +
+    `Event: ${label || type}\n` +
     `Guests: ${guests}\n` +
     `Budget: GHS ${Number(budget).toLocaleString()} (~GHS ${Number(perGuest).toLocaleString()}/guest)\n` +
     `Priorities: ${pri}\n` +
