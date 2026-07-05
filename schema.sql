@@ -110,6 +110,7 @@ CREATE TABLE IF NOT EXISTS events (
   contributions_enabled  INTEGER NOT NULL DEFAULT 1,
   contribution_goal      INTEGER NOT NULL DEFAULT 0,       -- minor units
   livestream_url         TEXT,
+  self_serve             INTEGER NOT NULL DEFAULT 0,   -- 1 = couple-built (self-serve) page
   created_at             INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_events_slug ON events(slug);
