@@ -28,7 +28,8 @@ export default function Concierge() {
   const paramType = TYPES.includes(params.get('type')) ? params.get('type') : 'Wedding'
   const paramBudget = Math.max(0, parseInt(params.get('budget')) || 50000)
   const paramGuests = Math.max(1, parseInt(params.get('guests')) || 150)
-  const [form, setForm] = useState({ eventType: paramType, guests: paramGuests, budget: paramBudget, culture: 'Ghanaian', vibe: '' })
+  const paramOther = (params.get('other') || '').slice(0, 80)
+  const [form, setForm] = useState({ eventType: paramType, guests: paramGuests, budget: paramBudget, culture: 'Ghanaian', vibe: '', otherType: paramOther })
   const [priorities, setPriorities] = useState([])
   const togglePriority = (k) =>
     setPriorities((p) => (p.includes(k) ? p.filter((x) => x !== k) : p.length < 2 ? [...p, k] : p))
@@ -100,6 +101,11 @@ export default function Concierge() {
                 ))}
               </div>
             </div>
+            {form.eventType === 'Other' && (
+              <Field label="Tell us what kind of event" value={form.otherType}
+                onChange={(e) => setForm({ ...form, otherType: e.target.value.slice(0, 80) })}
+                placeholder="Naming ceremony, graduation, funeral rites…" />
+            )}
             <div className="grid grid-cols-2 gap-4">
               <Field label="Guests" type="number" min="1" inputMode="numeric" value={form.guests} onChange={set('guests')} />
               <Field label="Budget (GH₵)" type="number" min="0" inputMode="numeric" value={form.budget} onChange={set('budget')} />
