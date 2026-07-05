@@ -3,13 +3,30 @@ import { useState, useEffect, useRef } from 'react'
 import { Container } from './ui/Section.jsx'
 import KenteBand from './ui/KenteBand.jsx'
 import CurrencySelect from './ui/CurrencySelect.jsx'
-import { Menu, Close, TikTok, WhatsApp, Mail, MapPin, ArrowRight } from '../lib/icons.jsx'
+import { Menu, Close, TikTok, WhatsApp, Mail, MapPin, ArrowRight, Sparkles, ChevronDown } from '../lib/icons.jsx'
 
 const navItems = [
   { to: '/', label: 'Home' },
   { to: '/services', label: 'Services' },
   { to: '/vendors', label: 'Vendors' },
   { to: '/concierge', label: 'Instant Quote' },
+  { to: '/portfolio', label: 'Portfolio' },
+  { to: '/about', label: 'About' },
+  { to: '/contact', label: 'Contact' },
+]
+const primaryNav = [
+  { to: '/services', label: 'Services' },
+  { to: '/vendors', label: 'Vendors' },
+  { to: '/portfolio', label: 'Portfolio' },
+]
+const moreNav = [
+  { to: '/about', label: 'About' },
+  { to: '/contact', label: 'Contact' },
+]
+const footerNav = [
+  { to: '/', label: 'Home' },
+  { to: '/services', label: 'Services' },
+  { to: '/vendors', label: 'Vendors' },
   { to: '/portfolio', label: 'Portfolio' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
@@ -37,6 +54,58 @@ function Logo({ light }) {
         Gather <span className="italic">Ghana</span>
       </span>
     </Link>
+  )
+}
+
+function MoreMenu({ light, items }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const { pathname } = useLocation()
+
+  useEffect(() => setOpen(false), [pathname])
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="true"
+        aria-expanded={open}
+        className={`inline-flex items-center gap-1 text-sm tracking-wide rounded transition-colors ${
+          light ? 'text-cream/75 hover:text-cream' : 'text-plum/70 hover:text-plum'
+        }`}
+      >
+        More <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-3 w-44 rounded-2xl bg-cream border border-plum/10 shadow-lg p-2 animate-fade-in">
+          {items.map((i) => (
+            <NavLink
+              key={i.to}
+              to={i.to}
+              className={({ isActive }) =>
+                `block px-3 py-2 rounded-xl text-sm transition-colors ${
+                  isActive ? 'text-plum font-medium bg-plum/5' : 'text-plum/75 hover:bg-plum/5 hover:text-plum'
+                }`
+              }
+            >
+              {i.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
