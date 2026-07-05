@@ -29,6 +29,7 @@ import OrgTasks from './pages/OrgTasks.jsx'
 import OrgBooks from './pages/OrgBooks.jsx'
 import OrgEvents from './pages/OrgEvents.jsx'
 import OrgServices from './pages/OrgServices.jsx'
+import OrgContent from './pages/OrgContent.jsx'
 import Guide from './pages/Guide.jsx'
 import NotFound from './pages/NotFound.jsx'
 
@@ -131,6 +132,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               element={
                 <ProtectedRoute>
                   <OrgServices />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/org/content"
+              element={
+                <ProtectedRoute>
+                  <OrgContent />
                 </ProtectedRoute>
               }
             />
