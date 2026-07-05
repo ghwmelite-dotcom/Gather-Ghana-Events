@@ -6,11 +6,80 @@ import Field from '../components/ui/Field.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
 import { ArrowLeft, ArrowRight, Spinner, Lock, CheckCircle } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
-import { toMinor } from '../lib/money.js'
+import { fromMinor, toMinor } from '../lib/money.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
 const EMPTY = { title: '', host_names: '', event_type: 'Wedding', event_date: '', venue: '', location: '', goal: '' }
+
+const DELIVERY = ['pending', 'booked', 'delivered']
+
+function FundingLines({ event, canWrite }) {
+  const [lines, setLines] = useState(null)
+  const [quotes, setQuotes] = useState([])
+  const [draft, setDraft] = useState({ label: '', goal: '' })
+  const [pickQuote, setPickQuote] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const load = useCallback(async () => {
+    try { const r = await api.orgEventLines(event.id); setLines(r.lines || []) } catch { setLines([]) }
+  }, [event.id])
+  useEffect(() => { load(); api.orgEventQuotes().then((r) => setQuotes(r.quotes || [])).catch(() => {}) }, [load])
+
+  const act = async (payload) => { setBusy(true); try { await api.orgEventAction(payload); await load() } catch { /* noop */ } finally { setBusy(false) } }
+  const addLine = async () => {
+    if (!draft.label.trim()) return
+    await act({ action: 'line_upsert', eventId: event.id, label: draft.label, target_amount: toMinor(parseFloat(draft.goal) || 0, 'GHS'), sort: (lines?.length || 0) })
+    setDraft({ label: '', goal: '' })
+  }
+
+  if (lines === null) return <p className="text-ink/40 text-xs mt-3">Loading funding lines…</p>
+
+  return (
+    <div className="mt-4 pt-4 border-t border-plum/10 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs uppercase tracking-wider text-ink/45">Funding lines</p>
+        {canWrite && quotes.length > 0 && (
+          <div className="flex items-center gap-2">
+            <select value={pickQuote} onChange={(e) => setPickQuote(e.target.value)} className="text-xs rounded-lg border border-plum/15 bg-cream px-2 py-1">
+              <option value="">Import from a lead…</option>
+              {quotes.map((q) => <option key={q.inquiryId} value={q.inquiryId}>{q.label}</option>)}
+            </select>
+            <button type="button" disabled={!pickQuote || busy} onClick={() => act({ action: 'import_lines', eventId: event.id, inquiryId: pickQuote })}
+              className="text-xs rounded-full bg-plum text-cream px-3 py-1.5 disabled:opacity-50">Import</button>
+          </div>
+        )}
+      </div>
+
+      {lines.length === 0 ? <p className="text-ink/45 text-xs">No lines yet — import from a lead's quote or add one below.</p> : (
+        <ul className="space-y-2">
+          {lines.map((l) => (
+            <li key={l.id} className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="flex-1 min-w-[120px] text-ink/80">{l.label} {l.visible ? '' : <span className="text-ink/40 text-xs">(hidden)</span>}</span>
+              <span className="tnum text-plum">{fromMinor(l.target_amount, 'GHS')} GH₵</span>
+              <select value={l.delivery_status} disabled={!canWrite} onChange={(e) => act({ action: 'line_delivery', id: l.id, delivery_status: e.target.value })}
+                className="text-xs rounded-lg border border-plum/15 bg-cream px-2 py-1">
+                {DELIVERY.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <button type="button" disabled={!canWrite} onClick={() => act({ action: 'line_upsert', id: l.id, label: l.label, target_amount: l.target_amount, sort: l.sort, visible: l.visible ? false : true })}
+                className="text-xs text-ink/50 link-underline disabled:opacity-50">{l.visible ? 'Hide' : 'Show'}</button>
+              <button type="button" disabled={!canWrite} onClick={() => act({ action: 'line_delete', id: l.id })}
+                className="text-xs text-terracotta link-underline disabled:opacity-50">Delete</button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {canWrite && (
+        <div className="flex flex-wrap items-end gap-2 pt-1">
+          <Field className="flex-1 min-w-[140px]" label="New line" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} placeholder="Catering" />
+          <Field label="Target (GH₵)" type="number" value={draft.goal} onChange={(e) => setDraft({ ...draft, goal: e.target.value })} />
+          <Button onClick={addLine} variant="outline" size="sm" loading={busy}>Add</Button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function OrgEvents() {
   const { client } = useAuth()
@@ -69,15 +138,18 @@ export default function OrgEvents() {
             {events.length === 0 ? (
               <div className="rounded-3xl bg-cream-deep border border-plum/8 p-8 text-ink/55">No event pages yet — create your first one.</div>
             ) : events.map((e) => (
-              <div key={e.id} className="rounded-2xl bg-cream-deep border border-plum/8 p-5 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="font-display text-plum">{e.host_names || e.title}</p>
-                  <p className="text-ink/50 text-xs">{e.event_type || 'Event'} · {fmtDate(e.event_date)} · {e.visibility}</p>
+              <div key={e.id} className="rounded-2xl bg-cream-deep border border-plum/8 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-display text-plum">{e.host_names || e.title}</p>
+                    <p className="text-ink/50 text-xs">{e.event_type || 'Event'} · {fmtDate(e.event_date)} · {e.visibility}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <a href={`/e/${e.slug}`} target="_blank" rel="noopener noreferrer" className="text-terracotta text-sm inline-flex items-center gap-1 link-underline">View <ArrowRight size={14} /></a>
+                    <button onClick={() => remove(e)} disabled={!canWrite} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Delete</button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <a href={`/e/${e.slug}`} target="_blank" rel="noopener noreferrer" className="text-terracotta text-sm inline-flex items-center gap-1 link-underline">View <ArrowRight size={14} /></a>
-                  <button onClick={() => remove(e)} disabled={!canWrite} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Delete</button>
-                </div>
+                <FundingLines event={e} canWrite={canWrite} />
               </div>
             ))}
           </div>
