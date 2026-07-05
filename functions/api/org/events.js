@@ -97,6 +97,8 @@ export async function onRequestPost({ request, env }) {
     const eventId = clampStr(body.eventId, 60)
     const event = await db.prepare('SELECT id FROM events WHERE id = ?').bind(eventId).first()
     if (!event) return fail('Event not found', 404)
+    const existing = await db.prepare('SELECT COUNT(*) AS n FROM event_line_items WHERE event_id = ?').bind(eventId).first()
+    if (existing.n > 0) return fail('This event already has funding lines — delete them first, or add lines manually.', 409)
     const inquiryId = clampStr(body.inquiryId, 60)
     const inq = await db.prepare('SELECT quote_json FROM inquiries WHERE id = ?').bind(inquiryId).first()
     const rows = lineItemsFromQuote(inq?.quote_json)
@@ -126,10 +128,15 @@ export async function onRequestPost({ request, env }) {
     const visible = body.visible === false ? 0 : 1
     if (body.id) {
       const id = clampStr(body.id, 60)
-      const ex = await db.prepare('SELECT id FROM event_line_items WHERE id = ?').bind(id).first()
+      if (!id) return fail('id is required', 422)
+      const ex = await db.prepare('SELECT id, event_id FROM event_line_items WHERE id = ?').bind(id).first()
       if (!ex) return fail('Line not found', 404)
       await db.prepare('UPDATE event_line_items SET label = ?, target_amount = ?, sort = ?, visible = ? WHERE id = ?')
         .bind(label, target, sort, visible, id).run()
+      await logActivity(db, {
+        actor: org.email, action: 'funding.line_update', entityType: 'event', entityId: ex.event_id,
+        detail: `Funding line "${label}" updated`,
+      })
       return ok({ id })
     }
     const event = await db.prepare('SELECT id FROM events WHERE id = ?').bind(eventId).first()
@@ -139,20 +146,32 @@ export async function onRequestPost({ request, env }) {
       `INSERT INTO event_line_items (id, event_id, label, category_key, target_amount, sort, visible, delivery_status, created_at)
        VALUES (?, ?, ?, NULL, ?, ?, ?, 'pending', ?)`
     ).bind(id, eventId, label, target, sort, visible, now()).run()
+    await logActivity(db, {
+      actor: org.email, action: 'funding.line_add', entityType: 'event', entityId: eventId,
+      detail: `Funding line "${label}" added`,
+    })
     return ok({ id })
   }
 
   if (action === 'line_delete') {
     const id = clampStr(body.id, 60)
+    if (!id) return fail('id is required', 422)
+    const ex = await db.prepare('SELECT id, event_id, label FROM event_line_items WHERE id = ?').bind(id).first()
+    if (!ex) return fail('Line not found', 404)
     await db.batch([
       db.prepare('UPDATE contributions SET line_item_id = NULL WHERE line_item_id = ?').bind(id),
       db.prepare('DELETE FROM event_line_items WHERE id = ?').bind(id),
     ])
+    await logActivity(db, {
+      actor: org.email, action: 'funding.line_delete', entityType: 'event', entityId: ex.event_id,
+      detail: `Funding line "${ex.label}" deleted`,
+    })
     return ok({ deleted: true })
   }
 
   if (action === 'line_delivery') {
     const id = clampStr(body.id, 60)
+    if (!id) return fail('id is required', 422)
     const status = DELIVERY.includes(body.delivery_status) ? body.delivery_status : null
     if (!status) return fail('Invalid delivery status', 422)
     const ex = await db.prepare('SELECT event_id FROM event_line_items WHERE id = ?').bind(id).first()
