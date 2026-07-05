@@ -4,9 +4,9 @@ import Seo from '../components/Seo.jsx'
 import Button from '../components/ui/Button.jsx'
 import Field from '../components/ui/Field.jsx'
 import { Section, Container } from '../components/ui/Section.jsx'
-import { Users, Calendar, Heart, Lock, Spinner, ArrowRight, CheckCircle, Plus } from '../lib/icons.jsx'
+import { Users, Calendar, Heart, Lock, Spinner, ArrowRight, Plus } from '../lib/icons.jsx'
 import { api, ApiError } from '../lib/api.js'
-import { formatMoney, toMinor } from '../lib/money.js'
+import { formatMoney } from '../lib/money.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 
 const ghs = (whole) => 'GH₵ ' + Number(whole || 0).toLocaleString()
@@ -19,47 +19,6 @@ function Stat({ Icon, label, value }) {
       <p className="font-display text-plum text-3xl mt-3 tnum">{value}</p>
       <p className="text-ink/55 text-sm">{label}</p>
     </div>
-  )
-}
-
-function CreateEvent({ onCreated, canWrite }) {
-  const [f, setF] = useState({ title: '', host_names: '', event_type: 'Wedding', event_date: '', venue: '', location: '', goal: '' })
-  const [busy, setBusy] = useState(false)
-  const [made, setMade] = useState(null)
-  const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
-  const submit = async (e) => {
-    e.preventDefault(); setBusy(true)
-    try {
-      const res = await api.createEvent({ ...f, contribution_goal: toMinor(parseFloat(f.goal) || 0, 'GHS') })
-      setMade(res.slug); onCreated?.()
-    } catch { /* noop */ } finally { setBusy(false) }
-  }
-  if (made) return (
-    <div className="rounded-3xl bg-plum text-cream p-7">
-      <CheckCircle size={28} className="text-champagne-light" />
-      <p className="mt-2">Event page created.</p>
-      <a href={`/e/${made}`} className="mt-3 inline-flex items-center gap-2 text-champagne-light link-underline">/e/{made} <ArrowRight size={16} /></a>
-      <button onClick={() => { setMade(null); setF({ ...f, title: '' }) }} className="block mt-4 text-sm text-cream/70 link-underline">Create another</button>
-    </div>
-  )
-  return (
-    <form onSubmit={submit} className="rounded-3xl bg-cream-deep border border-plum/8 p-7 space-y-4">
-      <h2 className="font-display text-plum text-xl">Create an event page</h2>
-      <Field label="Title" required value={f.title} onChange={set('title')} placeholder="The Wedding of Ama & Kojo" />
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Host names" value={f.host_names} onChange={set('host_names')} placeholder="Ama & Kojo" />
-        <Field label="Type" value={f.event_type} onChange={set('event_type')} />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Date" type="date" value={f.event_date} onChange={set('event_date')} />
-        <Field label="Goal (GH₵)" type="number" value={f.goal} onChange={set('goal')} placeholder="20000" />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Venue" value={f.venue} onChange={set('venue')} />
-        <Field label="Location" value={f.location} onChange={set('location')} />
-      </div>
-      <Button type="submit" variant="primary" size="sm" loading={busy} disabled={!canWrite} className="w-full">Create page</Button>
-    </form>
   )
 }
 
@@ -146,6 +105,7 @@ export default function OrgDashboard() {
           <h1 className="font-display text-4xl sm:text-5xl">Welcome, {data.organizer.name?.split(' ')[0] || 'planner'}.</h1>
           <nav aria-label="Organizer tools" className="mt-5 flex flex-wrap gap-2">
             <Link to="/org/tasks" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Tasks{data.stats.openTasks ? ` (${data.stats.openTasks})` : ''}</Link>
+            <Link to="/org/events" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Events</Link>
             <Link to="/org/books" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Financials</Link>
             <Link to="/org/vendors" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Vendors</Link>
             <Link to="/org/messages" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Inbox</Link>
@@ -196,7 +156,11 @@ export default function OrgDashboard() {
             </div>
 
             <div className="space-y-8">
-              <CreateEvent onCreated={load} canWrite={canWrite} />
+              <Link to="/org/events" className="block rounded-3xl bg-plum text-cream p-7 hover:bg-plum-soft transition-colors">
+                <p className="font-display text-xl">Event pages</p>
+                <p className="text-cream/65 text-sm mt-1">Create and manage shareable event pages.</p>
+                <span className="mt-4 inline-flex items-center gap-2 text-champagne-light text-sm">New event page <ArrowRight size={16} /></span>
+              </Link>
               <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
                 <h2 className="font-display text-plum text-xl mb-4">Recent messages</h2>
                 {data.messages.length === 0 ? <p className="text-ink/55 text-sm">No messages.</p> : (
