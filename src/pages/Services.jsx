@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import Seo from '../components/Seo.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import Button from '../components/ui/Button.jsx'
@@ -5,31 +6,10 @@ import Img from '../components/ui/Img.jsx'
 import Reveal from '../components/ui/Reveal.jsx'
 import { Section, Container, Eyebrow } from '../components/ui/Section.jsx'
 import FAQ from '../components/sections/FAQ.jsx'
-import { ArrowRight, Check } from '../lib/icons.jsx'
-import { packages } from '../lib/content.js'
+import { ArrowRight, Check, Spinner } from '../lib/icons.jsx'
+import { api } from '../lib/api.js'
 import { useCurrency } from '../lib/CurrencyContext.jsx'
 import { img } from '../lib/images.js'
-
-const detailed = [
-  {
-    title: 'Weddings',
-    image: img.weddings,
-    desc: 'Full-service planning and styling for traditional rites, engagements, and white weddings alike — honouring custom and personality in equal measure. We coordinate vendors, design the aesthetic, and run the day so you and your family can be fully present.',
-    includes: ['Concept & design direction', 'Vendor sourcing & management', 'Day-of coordination', 'Budget stewardship'],
-  },
-  {
-    title: 'Celebrations',
-    image: img.celebrations,
-    desc: 'Birthdays, anniversaries, outdoorings (naming ceremonies), engagements, and milestones. Intimate or grand, every celebration is styled to feel personal, warm, and unmistakably yours.',
-    includes: ['Theme & styling', 'Venue & décor', 'Entertainment booking', 'Guest experience design'],
-  },
-  {
-    title: 'Corporate',
-    image: img.corporate,
-    desc: 'Product launches, galas, conferences, and brand activations delivered with the polish your organisation expects — and measured against the outcomes that matter to you.',
-    includes: ['Brand-aligned design', 'Logistics & production', 'AV & technical direction', 'On-site management'],
-  },
-]
 
 const process = [
   { n: '01', title: 'Discover', desc: 'We listen to your vision, date, and budget, then shape the brief together.' },
@@ -38,8 +18,7 @@ const process = [
   { n: '04', title: 'Deliver', desc: 'On the day, we run everything seamlessly so you can simply enjoy the moment.' },
 ]
 
-function Pricing() {
-  const { fmtGhs, isForeign, currency } = useCurrency()
+function Pricing({ services, fmtGhs, isForeign, currency }) {
   return (
     <Section tone="creamDeep">
       <Container>
@@ -60,9 +39,9 @@ function Pricing() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 items-start">
-          {packages.map((p, i) => (
+          {services.map((p, i) => (
             <Reveal
-              key={p.key}
+              key={p.id}
               delay={i * 90}
               className={`relative rounded-3xl p-8 border flex flex-col ${
                 p.featured
@@ -75,34 +54,22 @@ function Pricing() {
                   Most popular
                 </span>
               )}
-              <h3 className={`font-display text-3xl ${p.featured ? 'text-cream' : 'text-plum'}`}>
-                {p.name}
-              </h3>
-              <p className={`mt-2 text-sm ${p.featured ? 'text-cream/60' : 'text-ink/55'}`}>
-                {p.tagline}
-              </p>
+              <h3 className={`font-display text-3xl ${p.featured ? 'text-cream' : 'text-plum'}`}>{p.name}</h3>
+              <p className={`mt-2 text-sm ${p.featured ? 'text-cream/60' : 'text-ink/55'}`}>{p.tagline}</p>
               <div className="mt-6 flex items-baseline gap-2">
                 <span className={`text-sm ${p.featured ? 'text-cream/60' : 'text-ink/50'}`}>from</span>
-                <span className="font-display text-4xl tnum">{fmtGhs(p.from)}</span>
+                <span className="font-display text-4xl tnum">{fmtGhs(p.price_from)}</span>
               </div>
               <ul className="mt-7 space-y-3 flex-1">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-start gap-3 text-sm">
-                    <Check
-                      size={18}
-                      className={`mt-0.5 shrink-0 ${p.featured ? 'text-champagne-light' : 'text-terracotta'}`}
-                    />
+                    <Check size={18} className={`mt-0.5 shrink-0 ${p.featured ? 'text-champagne-light' : 'text-terracotta'}`} />
                     <span className={p.featured ? 'text-cream/80' : 'text-ink/70'}>{f}</span>
                   </li>
                 ))}
               </ul>
               <div className="mt-8">
-                <Button
-                  to="/book"
-                  variant={p.featured ? 'gold' : 'outline'}
-                  size="md"
-                  className="w-full"
-                >
+                <Button to="/book" variant={p.featured ? 'gold' : 'outline'} size="md" className="w-full">
                   Get a tailored quote
                 </Button>
               </div>
@@ -115,6 +82,17 @@ function Pricing() {
 }
 
 export default function Services() {
+  const { fmtGhs, isForeign, currency } = useCurrency()
+  const [services, setServices] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    api.services()
+      .then((r) => { if (!cancelled) setServices(r.services || []) })
+      .catch(() => { if (!cancelled) setServices([]) })
+    return () => { cancelled = true }
+  }, [])
+
   return (
     <>
       <Seo
@@ -130,26 +108,19 @@ export default function Services() {
 
       <Section tone="cream">
         <Container className="space-y-10">
-          {detailed.map((s, i) => (
-            <Reveal
-              key={s.title}
-              className="grid md:grid-cols-12 gap-8 lg:gap-10 items-center"
-            >
+          {services === null ? (
+            <div className="grid place-items-center py-16 text-plum"><Spinner size={28} /></div>
+          ) : services.map((s, i) => (
+            <Reveal key={s.id} className="grid md:grid-cols-12 gap-8 lg:gap-10 items-center">
               <div className={`md:col-span-5 ${i % 2 ? 'md:order-2' : ''}`}>
-                <Img
-                  src={s.image.src}
-                  alt={s.image.alt}
-                  fallback={s.image.fallback}
-                  ratio="3 / 2"
-                  className="rounded-3xl shadow-md"
-                />
+                <Img src={s.image} alt={s.name} fallback="from-terracotta/30 to-plum/40" ratio="3 / 2" className="rounded-3xl shadow-md" />
               </div>
               <div className="md:col-span-7">
                 <span className="font-display italic text-champagne text-2xl">0{i + 1}</span>
-                <h2 className="font-display text-plum text-4xl mt-2 mb-4">{s.title}</h2>
-                <p className="text-ink/70 leading-relaxed max-w-prose">{s.desc}</p>
+                <h2 className="font-display text-plum text-4xl mt-2 mb-4">{s.name}</h2>
+                <p className="text-ink/70 leading-relaxed max-w-prose">{s.description}</p>
                 <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
-                  {s.includes.map((item) => (
+                  {s.features.map((item) => (
                     <li key={item} className="flex items-center gap-3 text-sm text-ink/70">
                       <Check size={17} className="text-terracotta shrink-0" />
                       {item}
@@ -162,7 +133,9 @@ export default function Services() {
         </Container>
       </Section>
 
-      <Pricing />
+      {services && services.length > 0 && (
+        <Pricing services={services} fmtGhs={fmtGhs} isForeign={isForeign} currency={currency} />
+      )}
 
       <Section tone="plum">
         <Container>

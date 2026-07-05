@@ -44,50 +44,5 @@ export const faqs = [
   },
 ]
 
-// Indicative starting prices (GH₵). Final quotes are tailored.
-export const packages = [
-  {
-    key: 'Wedding',
-    name: 'Weddings',
-    from: 35000,
-    tagline: 'Full planning, design & day-of coordination',
-    features: [
-      'Concept & design direction',
-      'Vendor sourcing & management',
-      'Full day-of coordination',
-      'Budget stewardship',
-      'Dedicated lead planner',
-    ],
-    featured: true,
-  },
-  {
-    key: 'Celebration',
-    name: 'Celebrations',
-    from: 18000,
-    tagline: 'Birthdays, anniversaries & milestones',
-    features: [
-      'Theme & styling',
-      'Venue & décor sourcing',
-      'Entertainment booking',
-      'Guest experience design',
-      'On-the-day management',
-    ],
-    featured: false,
-  },
-  {
-    key: 'Corporate',
-    name: 'Corporate',
-    from: 25000,
-    tagline: 'Launches, galas & conferences',
-    features: [
-      'Brand-aligned design',
-      'Logistics & production',
-      'AV & technical direction',
-      'On-site management',
-      'Post-event reporting',
-    ],
-    featured: false,
-  },
-]
 
 export const fmtGhs = (n) => 'GH₵ ' + Math.round(n).toLocaleString('en-GH')
