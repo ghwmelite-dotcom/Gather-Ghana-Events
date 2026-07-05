@@ -12,9 +12,11 @@ export default function PackageTeaser() {
   const [type, setType] = useState('Wedding')
   const [budget, setBudget] = useState(50000)
   const [guests, setGuests] = useState(150)
+  const [other, setOther] = useState('')
 
   const build = () => {
     const qs = new URLSearchParams({ type, budget: String(budget || 0), guests: String(guests || 0) })
+    if (type === 'Other' && other.trim()) qs.set('other', other.trim())
     navigate(`/concierge?${qs.toString()}`)
   }
 
@@ -36,6 +38,11 @@ export default function PackageTeaser() {
                 className={`py-2.5 rounded-xl border text-sm transition-all ${type === t ? 'border-champagne bg-champagne text-plum-deep' : 'border-cream/25 text-cream/80 hover:border-cream/60'}`}>{t}</button>
             ))}
           </div>
+          {type === 'Other' && (
+            <input type="text" value={other} onChange={(e) => setOther(e.target.value)} maxLength={80}
+              placeholder="Tell us what kind of event…"
+              className="w-full mb-4 rounded-xl border border-cream/25 bg-plum/40 text-cream px-3 py-2.5 outline-none focus:border-champagne placeholder-cream/40" />
+          )}
           <div className="grid sm:grid-cols-2 gap-4">
             <label className="block text-sm">
               <span className="text-cream/70">Budget (GH₵)</span>
