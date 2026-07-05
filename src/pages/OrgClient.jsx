@@ -191,7 +191,7 @@ export default function OrgClient() {
             <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
               <div className="flex items-baseline justify-between gap-3 mb-1">
                 <h2 className="font-display text-plum text-2xl">Budget & costs</h2>
-                <Link to="/org/books" className="text-sm text-terracotta inline-flex items-center gap-1 link-underline">Books <ArrowRight size={14} /></Link>
+                <Link to="/org/books" className="text-sm text-terracotta inline-flex items-center gap-1 link-underline">Financials <ArrowRight size={14} /></Link>
               </div>
               <p className="text-ink/50 text-sm mb-5">Planned and committed lines are the budget; paid is money out the door.</p>
               {expenses.length === 0 ? <p className="text-ink/55 text-sm">No cost lines yet — record what this event will cost you.</p> : (

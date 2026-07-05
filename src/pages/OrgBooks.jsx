@@ -84,13 +84,13 @@ export default function OrgBooks() {
 
   return (
     <>
-      <Seo title="Books · Organizer" noindex />
+      <Seo title="Financials · Organizer" noindex />
       <section className="bg-plum-deep text-cream pt-32 pb-10">
         <Container>
           <Link to="/org" className="inline-flex items-center gap-2 text-cream/70 hover:text-cream text-sm mb-5"><ArrowLeft size={16} /> Dashboard</Link>
           <div className="flex flex-wrap items-end justify-between gap-5">
             <div>
-              <h1 className="font-display text-4xl sm:text-5xl">Books</h1>
+              <h1 className="font-display text-4xl sm:text-5xl">Financials</h1>
               <p className="text-cream/70 mt-2">Revenue, costs, and margins across every event — exportable any time.</p>
             </div>
             <div className="flex flex-wrap gap-2">
