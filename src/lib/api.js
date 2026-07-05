@@ -109,6 +109,9 @@ export const api = {
   },
   orgEvents: () => request('/org/events'),
   orgEventAction: (payload) => request('/org/events', { method: 'POST', body: payload }),
+  services: () => request('/services'),
+  orgServices: () => request('/org/services'),
+  orgServiceAction: (payload) => request('/org/services', { method: 'POST', body: payload }),
 
   // ---- Proposals (client accepts/declines) ----
   proposalAction: (proposalId, action) => request('/portal/proposals', { method: 'POST', body: { proposalId, action } }),
