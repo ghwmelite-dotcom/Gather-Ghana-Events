@@ -116,13 +116,13 @@ export default function OrgDashboard() {
           <h1 className="font-display text-4xl sm:text-5xl">Welcome, {data.organizer.name?.split(' ')[0] || 'planner'}.</h1>
           <nav aria-label="Organizer tools" className="mt-5 flex flex-wrap gap-2">
             <Link to="/org/tasks" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Tasks{data.stats.openTasks ? ` (${data.stats.openTasks})` : ''}</Link>
-            <Link to="/org/events" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Events</Link>
+            {canWrite && <Link to="/org/events" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Events</Link>}
             <Link to="/org/services" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Services</Link>
             <Link to="/org/content" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Content</Link>
             <Link to="/org/books" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Financials</Link>
             <Link to="/org/vendors" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Vendors</Link>
             <Link to="/org/messages" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Inbox</Link>
-            <Link to="/org/team" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Team</Link>
+            {canWrite && <Link to="/org/team" className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Team</Link>}
             <Link to={`/guide?role=${guideRole}`} className="text-sm rounded-full bg-cream/10 hover:bg-cream/20 text-cream px-4 py-1.5 transition-colors">Guide</Link>
           </nav>
         </Container>
@@ -195,11 +195,13 @@ export default function OrgDashboard() {
                 </Link>
               </div>
 
-              <Link to="/org/events" className="block rounded-3xl bg-plum text-cream p-7 hover:bg-plum-soft transition-colors">
-                <p className="font-display text-xl">Event pages</p>
-                <p className="text-cream/65 text-sm mt-1">Create and manage shareable event pages.</p>
-                <span className="mt-4 inline-flex items-center gap-2 text-champagne-light text-sm">New event page <ArrowRight size={16} /></span>
-              </Link>
+              {canWrite && (
+                <Link to="/org/events" className="block rounded-3xl bg-plum text-cream p-7 hover:bg-plum-soft transition-colors">
+                  <p className="font-display text-xl">Event pages</p>
+                  <p className="text-cream/65 text-sm mt-1">Create and manage shareable event pages.</p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-champagne-light text-sm">New event page <ArrowRight size={16} /></span>
+                </Link>
+              )}
               <div className="rounded-3xl bg-cream-deep border border-plum/8 p-7">
                 <h2 className="font-display text-plum text-xl mb-4">Recent messages</h2>
                 {data.messages.length === 0 ? <p className="text-ink/55 text-sm">No messages.</p> : (
