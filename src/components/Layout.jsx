@@ -23,9 +23,9 @@ const footerNav = [
   { to: '/contact', label: 'Contact' },
 ]
 
-const WHATSAPP_URL = 'https://wa.me/233505982361'
+const WHATSAPP_URL = 'https://wa.me/233247511174'
 const TIKTOK_URL = 'https://www.tiktok.com/@gatherghana_events'
-const EMAIL = 'hello@gatherghana.events'
+const EMAIL = 'gatherghana0@gmail.com'
 
 function Logo({ light }) {
   return (

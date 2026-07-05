@@ -24,7 +24,7 @@ const proposalChip = {
   draft: { label: 'Draft', cls: 'bg-plum/5 text-ink/40' },
 }
 
-const WHATSAPP_URL = 'https://wa.me/233000000000'
+const WHATSAPP_URL = 'https://wa.me/233247511174'
 
 const statusStyles = {
   done: { ring: 'bg-champagne border-champagne text-plum-deep', label: 'Done' },

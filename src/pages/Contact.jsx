@@ -9,8 +9,8 @@ import { CheckCircle, WhatsApp, Mail, MapPin, TikTok, Clock } from '../lib/icons
 import { api, ApiError } from '../lib/api.js'
 import { isEmail, required, validate } from '../lib/validate.js'
 
-const WHATSAPP_URL = 'https://wa.me/233000000000'
-const EMAIL = 'hello@gatherghana.events'
+const WHATSAPP_URL = 'https://wa.me/233247511174'
+const EMAIL = 'gatherghana0@gmail.com'
 const TIKTOK_URL = 'https://www.tiktok.com/@gatherghana_events'
 
 const methods = [

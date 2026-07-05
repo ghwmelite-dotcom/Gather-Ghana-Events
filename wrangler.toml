@@ -22,7 +22,7 @@ EMAIL_FROM = "Gather Ghana Events <hello@ohwpstudios.org>"
 ORGANIZER_EMAILS = "ohwpstudios@gmail.com"
 # Organizer WhatsApp number in E.164 digits, NO leading + (e.g. 233201234567).
 # Unset → the WhatsApp hand-off button is hidden; in-system hand-off still works.
-ORGANIZER_WHATSAPP = "233505982361"
+ORGANIZER_WHATSAPP = "233247511174"
 PAYSTACK_CURRENCY = "GHS"
 PAYSTACK_CHANNELS = "mobile_money,card"
 WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
