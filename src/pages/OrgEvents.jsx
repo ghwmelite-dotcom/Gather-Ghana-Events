@@ -110,6 +110,7 @@ export default function OrgEvents() {
     if (!confirm(`Delete the event page "${ev.title}"? This can't be undone.`)) return
     try { await api.orgEventAction({ action: 'delete', id: ev.id }); await load() } catch { /* noop */ }
   }
+  const accept = async (ev) => { try { await api.orgEventAction({ action: 'accept_self_serve', id: ev.id }); await load() } catch { /* noop */ } }
 
   if (state === 'loading') return <div className="min-h-dvh grid place-items-center text-plum"><Spinner size={32} /></div>
   if (state === 'forbidden') return (
@@ -141,10 +142,18 @@ export default function OrgEvents() {
               <div key={e.id} className="rounded-2xl bg-cream-deep border border-plum/8 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="font-display text-plum">{e.host_names || e.title}</p>
+                    <p className="font-display text-plum">
+                      {e.host_names || e.title}
+                      {e.self_serve === 1 && e.contributions_enabled === 0 && (
+                        <span className="ml-2 align-middle text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-champagne/25 text-terracotta">Pending funding</span>
+                      )}
+                    </p>
                     <p className="text-ink/50 text-xs">{e.event_type || 'Event'} · {fmtDate(e.event_date)} · {e.visibility}</p>
                   </div>
                   <div className="flex items-center gap-3">
+                    {canWrite && e.self_serve === 1 && e.contributions_enabled === 0 && (
+                      <button onClick={() => accept(e)} className="text-xs rounded-full bg-plum text-cream px-3 py-1.5 hover:bg-plum-soft transition-colors">Accept &amp; enable funding</button>
+                    )}
                     <a href={`/e/${e.slug}`} target="_blank" rel="noopener noreferrer" className="text-terracotta text-sm inline-flex items-center gap-1 link-underline">View <ArrowRight size={14} /></a>
                     <button onClick={() => remove(e)} disabled={!canWrite} className="text-xs rounded-full border border-terracotta/30 px-3 py-1.5 text-terracotta disabled:opacity-50">Delete</button>
                   </div>
