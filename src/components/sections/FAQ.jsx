@@ -1,7 +1,7 @@
-import { useState, useId } from 'react'
+import { useState, useEffect, useId } from 'react'
 import { Section, Container, Eyebrow } from '../ui/Section.jsx'
 import { ChevronDown } from '../../lib/icons.jsx'
-import { faqs } from '../../lib/content.js'
+import { api } from '../../lib/api.js'
 
 function Item({ q, a, open, onToggle }) {
   const id = useId()
@@ -42,6 +42,13 @@ function Item({ q, a, open, onToggle }) {
 
 export default function FAQ() {
   const [openIdx, setOpenIdx] = useState(0)
+  const [faqs, setFaqs] = useState(null)
+  useEffect(() => {
+    let cancelled = false
+    api.content().then((r) => { if (!cancelled) setFaqs(r.faq || []) }).catch(() => { if (!cancelled) setFaqs([]) })
+    return () => { cancelled = true }
+  }, [])
+  if (!faqs || faqs.length === 0) return null
 
   return (
     <Section tone="cream" id="faq">
@@ -54,13 +61,7 @@ export default function FAQ() {
         </div>
         <div>
           {faqs.map((f, i) => (
-            <Item
-              key={f.q}
-              q={f.q}
-              a={f.a}
-              open={openIdx === i}
-              onToggle={() => setOpenIdx(openIdx === i ? -1 : i)}
-            />
+            <Item key={f.id} q={f.q} a={f.a} open={openIdx === i} onToggle={() => setOpenIdx(openIdx === i ? -1 : i)} />
           ))}
         </div>
       </Container>

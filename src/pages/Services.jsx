@@ -11,13 +11,6 @@ import { api } from '../lib/api.js'
 import { useCurrency } from '../lib/CurrencyContext.jsx'
 import { img } from '../lib/images.js'
 
-const process = [
-  { n: '01', title: 'Discover', desc: 'We listen to your vision, date, and budget, then shape the brief together.' },
-  { n: '02', title: 'Design', desc: 'A tailored concept, mood, and plan, presented for your review and refinement.' },
-  { n: '03', title: 'Coordinate', desc: 'We source and manage every vendor and detail, keeping you informed throughout.' },
-  { n: '04', title: 'Deliver', desc: 'On the day, we run everything seamlessly so you can simply enjoy the moment.' },
-]
-
 function Pricing({ services, fmtGhs, isForeign, currency }) {
   return (
     <Section tone="creamDeep">
@@ -84,6 +77,12 @@ function Pricing({ services, fmtGhs, isForeign, currency }) {
 export default function Services() {
   const { fmtGhs, isForeign, currency } = useCurrency()
   const [services, setServices] = useState(null)
+  const [process, setProcess] = useState(null)
+  useEffect(() => {
+    let cancelled = false
+    api.content().then((r) => { if (!cancelled) setProcess(r.process || []) }).catch(() => { if (!cancelled) setProcess([]) })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -143,9 +142,9 @@ export default function Services() {
             The <span className="italic text-champagne-light">process</span>
           </h2>
           <div className="grid md:grid-cols-4 gap-10">
-            {process.map((p, i) => (
-              <Reveal key={p.n} delay={i * 80}>
-                <div className="font-display italic text-champagne text-3xl mb-4">{p.n}</div>
+            {(process || []).map((p, i) => (
+              <Reveal key={p.id} delay={i * 80}>
+                <div className="font-display italic text-champagne text-3xl mb-4">0{i + 1}</div>
                 <h3 className="font-display text-2xl mb-3">{p.title}</h3>
                 <p className="text-cream/60 leading-relaxed text-sm">{p.desc}</p>
               </Reveal>
