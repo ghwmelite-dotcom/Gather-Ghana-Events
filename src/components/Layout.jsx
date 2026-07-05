@@ -215,7 +215,27 @@ function Header() {
           className="md:hidden bg-cream border-t border-plum/10 mt-3 px-6 py-6 flex flex-col gap-2 animate-fade-in"
           aria-label="Mobile"
         >
-          {navItems.map((item) => (
+          {primaryNav.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `text-plum text-xl font-display py-2 ${isActive ? 'italic text-terracotta' : ''}`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+          <NavLink
+            to="/concierge"
+            className={({ isActive }) =>
+              `inline-flex items-center gap-2 text-terracotta text-xl font-display py-2 ${isActive ? 'italic' : ''}`
+            }
+          >
+            <Sparkles size={18} /> Instant Quote
+          </NavLink>
+          <p className="mt-3 mb-1 text-xs uppercase tracking-widest text-ink/40">More</p>
+          {moreNav.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
