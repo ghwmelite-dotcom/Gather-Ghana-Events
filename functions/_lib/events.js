@@ -36,8 +36,8 @@ export async function createEventRecord(db, ownerEmail, body) {
       `INSERT INTO events
        (id, slug, owner_email, inquiry_id, title, host_names, event_type, event_date,
         start_time, venue, location, cover_image, story, currency, visibility,
-        rsvp_enabled, contributions_enabled, contribution_goal, livestream_url, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        rsvp_enabled, contributions_enabled, contribution_goal, livestream_url, self_serve, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       id, slug, ownerEmail || null, clampStr(body.inquiry_id, 60) || null,
@@ -47,7 +47,7 @@ export async function createEventRecord(db, ownerEmail, body) {
       clampStr(body.cover_image, 400), clampStr(body.story, 4000), currency, visibility,
       body.rsvp_enabled === false ? 0 : 1,
       body.contributions_enabled === false ? 0 : 1,
-      goal, clampStr(body.livestream_url, 400), ts
+      goal, clampStr(body.livestream_url, 400), body.self_serve ? 1 : 0, ts
     )
     .run()
 
