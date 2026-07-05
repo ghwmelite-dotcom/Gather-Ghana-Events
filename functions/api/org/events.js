@@ -46,7 +46,8 @@ export async function onRequestGet({ request, env }) {
 
   const { results } = await db
     .prepare(
-      `SELECT id, slug, title, host_names, event_type, event_date, visibility, inquiry_id, created_at
+      `SELECT id, slug, title, host_names, event_type, event_date, visibility, inquiry_id,
+              self_serve, contributions_enabled, created_at
        FROM events ORDER BY created_at DESC LIMIT 200`
     )
     .all()
@@ -182,6 +183,19 @@ export async function onRequestPost({ request, env }) {
       detail: `Funding line marked ${status}`,
     })
     return ok({ id, delivery_status: status })
+  }
+
+  if (action === 'accept_self_serve') {
+    const id = clampStr(body.id, 60)
+    if (!id) return fail('id is required', 422)
+    const ev = await db.prepare('SELECT id, slug, title FROM events WHERE id = ?').bind(id).first()
+    if (!ev) return fail('Event not found', 404)
+    await db.prepare('UPDATE events SET contributions_enabled = 1 WHERE id = ?').bind(id).run()
+    await logActivity(db, {
+      actor: org.email, action: 'funding.accept', entityType: 'event', entityId: id,
+      detail: `Enabled funding on "${ev.title}" (/e/${ev.slug})`,
+    })
+    return ok({ id, contributions_enabled: 1 })
   }
 
   return fail('Unknown action', 422)
