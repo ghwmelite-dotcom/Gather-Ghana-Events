@@ -290,3 +290,19 @@ CREATE TABLE IF NOT EXISTS thread_messages (
   created_at     INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_thread_inquiry ON thread_messages(inquiry_id);
+
+-- Services catalog (admin-editable offerings shown on /services).
+CREATE TABLE IF NOT EXISTS services (
+  id          TEXT PRIMARY KEY,
+  name        TEXT NOT NULL,
+  tagline     TEXT,
+  description TEXT,
+  image       TEXT,
+  features    TEXT NOT NULL DEFAULT '[]',   -- JSON array of strings
+  price_from  INTEGER NOT NULL DEFAULT 0,   -- whole GH₵
+  featured    INTEGER NOT NULL DEFAULT 0,
+  published   INTEGER NOT NULL DEFAULT 1,
+  sort        INTEGER NOT NULL DEFAULT 0,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_services_published ON services(published, sort);
