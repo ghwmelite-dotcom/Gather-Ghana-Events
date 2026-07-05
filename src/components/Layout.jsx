@@ -5,15 +5,6 @@ import KenteBand from './ui/KenteBand.jsx'
 import CurrencySelect from './ui/CurrencySelect.jsx'
 import { Menu, Close, TikTok, WhatsApp, Mail, MapPin, ArrowRight, Sparkles, ChevronDown } from '../lib/icons.jsx'
 
-const navItems = [
-  { to: '/', label: 'Home' },
-  { to: '/services', label: 'Services' },
-  { to: '/vendors', label: 'Vendors' },
-  { to: '/concierge', label: 'Instant Quote' },
-  { to: '/portfolio', label: 'Portfolio' },
-  { to: '/about', label: 'About' },
-  { to: '/contact', label: 'Contact' },
-]
 const primaryNav = [
   { to: '/services', label: 'Services' },
   { to: '/vendors', label: 'Vendors' },
@@ -300,7 +291,7 @@ function Footer() {
               Explore
             </h2>
             <ul className="space-y-3 text-cream/70 text-sm">
-              {navItems.map((i) => (
+              {footerNav.map((i) => (
                 <li key={i.to}>
                   <Link to={i.to} className="link-underline">{i.label}</Link>
                 </li>
