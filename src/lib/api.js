@@ -109,6 +109,8 @@ export const api = {
   },
   orgEvents: () => request('/org/events'),
   orgEventAction: (payload) => request('/org/events', { method: 'POST', body: payload }),
+  orgEventLines: (eventId) => request(`/org/events?eventId=${encodeURIComponent(eventId)}`),
+  orgEventQuotes: () => request('/org/events?quotes=1'),
   services: () => request('/services'),
   orgServices: () => request('/org/services'),
   orgServiceAction: (payload) => request('/org/services', { method: 'POST', body: payload }),
