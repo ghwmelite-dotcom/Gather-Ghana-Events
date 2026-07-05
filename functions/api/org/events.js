@@ -188,8 +188,8 @@ export async function onRequestPost({ request, env }) {
   if (action === 'accept_self_serve') {
     const id = clampStr(body.id, 60)
     if (!id) return fail('id is required', 422)
-    const ev = await db.prepare('SELECT id, slug, title FROM events WHERE id = ?').bind(id).first()
-    if (!ev) return fail('Event not found', 404)
+    const ev = await db.prepare('SELECT id, slug, title FROM events WHERE id = ? AND self_serve = 1').bind(id).first()
+    if (!ev) return fail('Self-serve event not found', 404)
     await db.prepare('UPDATE events SET contributions_enabled = 1 WHERE id = ?').bind(id).run()
     await logActivity(db, {
       actor: org.email, action: 'funding.accept', entityType: 'event', entityId: id,
