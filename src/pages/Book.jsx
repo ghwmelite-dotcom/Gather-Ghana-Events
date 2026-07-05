@@ -52,6 +52,7 @@ function FinancingCard({ total }) {
 export default function Book() {
   const [type, setType] = useState('Wedding')
   const [guests, setGuests] = useState(100)
+  const [otherType, setOtherType] = useState('')
   const [form, setForm] = useState({ name: '', email: '', date: '', phone: '', notes: '' })
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState('idle') // idle | submitting | redirecting | done
@@ -97,7 +98,8 @@ export default function Book() {
     setStatus('submitting')
     setServerError('')
     const vendorNote = requestedVendor ? `Requested vendor: ${requestedVendor} (${vendorSlug})` : ''
-    const notes = [vendorNote, form.notes].filter(Boolean).join('\n\n')
+    const typeNote = type === 'Other' && otherType.trim() ? `Event type: ${otherType.trim()}` : ''
+    const notes = [typeNote, vendorNote, form.notes].filter(Boolean).join('\n\n')
     const payload = {
       type,
       guests: Number(guests) || 0,
@@ -213,6 +215,16 @@ export default function Book() {
                     ))}
                   </div>
                 </fieldset>
+
+                {type === 'Other' && (
+                  <Field
+                    id="book-other-type"
+                    label="Tell us what kind of event"
+                    value={otherType}
+                    onChange={(e) => setOtherType(e.target.value.slice(0, 80))}
+                    placeholder="Naming ceremony, graduation, funeral rites…"
+                  />
+                )}
 
                 <Field
                   id="book-name"
