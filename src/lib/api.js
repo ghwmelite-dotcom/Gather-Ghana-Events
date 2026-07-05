@@ -112,6 +112,9 @@ export const api = {
   services: () => request('/services'),
   orgServices: () => request('/org/services'),
   orgServiceAction: (payload) => request('/org/services', { method: 'POST', body: payload }),
+  content: () => request('/content'),
+  orgContent: () => request('/org/content'),
+  orgContentAction: (payload) => request('/org/content', { method: 'POST', body: payload }),
 
   // ---- Proposals (client accepts/declines) ----
   proposalAction: (proposalId, action) => request('/portal/proposals', { method: 'POST', body: { proposalId, action } }),
