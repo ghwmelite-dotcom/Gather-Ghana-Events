@@ -88,19 +88,24 @@ export async function onRequestPost({ request, env }) {
     const existing = await ownEvent(db, client.email)
     if (existing) return fail('You already have a funding page', 409)
     const inquiry = await latestInquiry(db, client.id)
-    const res = await createEventRecord(db, client.email, {
-      title: body.title,
-      host_names: body.host_names,
-      event_type: body.event_type,
-      event_date: body.event_date,
-      cover_image: body.cover_image,
-      story: body.story,
-      inquiry_id: inquiry?.id || null,
-      self_serve: true,
-      contributions_enabled: false,
-      visibility: 'unlisted',
-    })
-    return ok(res)
+    try {
+      const res = await createEventRecord(db, client.email, {
+        title: body.title,
+        host_names: body.host_names,
+        event_type: body.event_type,
+        event_date: body.event_date,
+        cover_image: body.cover_image,
+        story: body.story,
+        inquiry_id: inquiry?.id || null,
+        self_serve: true,
+        contributions_enabled: false,
+        visibility: 'unlisted',
+      })
+      return ok(res)
+    } catch (e) {
+      if (e.status === 422) return fail(e.message, 422, { fields: e.fields })
+      throw e
+    }
   }
 
   // All remaining actions operate only on the client's own self-serve event.
@@ -108,6 +113,7 @@ export async function onRequestPost({ request, env }) {
   if (!event) return fail('No funding page yet', 404)
 
   if (action === 'update') {
+    // Keep the existing title if the client clears it — a basics edit shouldn't blank the page title.
     await db
       .prepare('UPDATE events SET title = ?, host_names = ?, event_date = ?, cover_image = ?, story = ? WHERE id = ?')
       .bind(clampStr(body.title, 120) || event.title, clampStr(body.host_names, 160), clampStr(body.event_date, 20), clampStr(body.cover_image, 400), clampStr(body.story, 4000), event.id)
@@ -118,6 +124,7 @@ export async function onRequestPost({ request, env }) {
   if (action === 'import_lines') {
     const existing = await db.prepare('SELECT COUNT(*) AS n FROM event_line_items WHERE event_id = ?').bind(event.id).first()
     if (existing.n > 0) return fail('You already have funding lines — delete them first, or add manually.', 409)
+    if (!event.inquiry_id) return fail('This funding page has no linked inquiry to import from', 422)
     const inq = await db.prepare('SELECT quote_json FROM inquiries WHERE id = ?').bind(event.inquiry_id).first()
     const rows = lineItemsFromQuote(inq?.quote_json)
     if (!rows.length) return fail('No saved quote to import', 422)
