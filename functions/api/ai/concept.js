@@ -48,6 +48,9 @@ export async function onRequestPost({ request, env }) {
   const budget = Math.max(0, parseInt(body.budget) || 0) // whole GHS
   const vibe = clampStr(body.vibe, 200)
   const culture = clampStr(body.culture, 80)
+  const otherType = clampStr(body.otherType, 80)
+  const label = (type === 'Other' && otherType) ? otherType : type
+  const labelText = (type === 'Other' && otherType) ? otherType : type.toLowerCase()
 
   const priorities = Array.isArray(body.priorities) ? body.priorities.slice(0, 2) : []
 
@@ -92,24 +95,24 @@ export async function onRequestPost({ request, env }) {
 
   // Deterministic concept (always present).
   let concept =
-    `A ${vibe || 'beautiful'} ${culture ? culture + ' ' : ''}${type.toLowerCase()} for ${guests} guests. ` +
+    `A ${vibe || 'beautiful'} ${culture ? culture + ' ' : ''}${labelText} for ${guests} guests. ` +
     `We'd anchor the day around warmth and detail — a considered palette, a clear run-of-show, and vendors matched to your vision.`
   let aiUsed = false
 
   if (isConfigured(env)) {
     const out = await complete(env, {
       system: 'You are an elegant Ghanaian event designer. Write 3 warm, concrete sentences describing a concept. No markdown, no lists.',
-      user: `Event: ${type}. Culture: ${culture || 'Ghanaian'}. Guests: ${guests}. Budget: GHS ${budget}. Vibe: ${vibe || 'warm and elegant'}.`,
+      user: `Event: ${label}. Culture: ${culture || 'Ghanaian'}. Guests: ${guests}. Budget: GHS ${budget}. Vibe: ${vibe || 'warm and elegant'}.`,
       maxTokens: 220,
     })
     if (out) { concept = out; aiUsed = true }
   }
 
-  const summary = packageSummary({ type, guests, budget, perGuest, priorities, split })
+  const summary = packageSummary({ type, guests, budget, perGuest, priorities, split, label })
 
   return ok({
     plan: {
-      type, guests, budget, perGuest, priorities, concept, palette, vendors, timeline,
+      type, eventLabel: label, guests, budget, perGuest, priorities, concept, palette, vendors, timeline,
       budgetSplit: split, summary, aiUsed,
       contact: { whatsapp: env.ORGANIZER_WHATSAPP || null },
     },
